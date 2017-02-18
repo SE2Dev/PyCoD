@@ -15,7 +15,7 @@ class NoteTrack_Export:
 		self.notes = []
 		self.first_frame = None
 		self.frame_count = None
-		file = open(path)
+		file = open(path, "r")
 		for line in file:
 			line = line.lstrip()
 			if line.startswith("//"):
