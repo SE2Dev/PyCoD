@@ -38,6 +38,10 @@ class Frame:
 			if len(line_split) == 0:
 				continue
 
+			for i, split in enumerate(line_split):
+				if split[-1:] == ',':
+					line_split[i] = split.rstrip(",")
+
 			if state == 0 and line_split[0] == "PART":
 				part_index = int(line_split[1])
 				if(part_index >= part_count):
@@ -143,7 +147,7 @@ class XAnim_Export:
 				continue
 
 			if line_split[0] == "FRAMERATE":
-				# TODO: Check if the format even supports non-int point framerates
+				# TODO: Check if the format even supports non-int framerates
 				self.framerate = float(line_split[1])
 			elif line_split[0] == "NUMFRAMES":
 				frame_count = int(line_split[1])
