@@ -158,6 +158,9 @@ class XAnim_Export:
 				
 				lines_read += self.__load_frame__(file, frame_index, frame_number)
 				frame_index += 1
+
+				if frame_index == frame_count:
+					return lines_read
 		
 		return lines_read
 
