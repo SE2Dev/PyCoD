@@ -249,3 +249,5 @@ class XAnim_Export:
 		#	for note in self.notes:
 		#		file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
 		#	file.write("\n")
+
+		file.close()
