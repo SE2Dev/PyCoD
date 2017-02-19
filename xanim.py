@@ -172,7 +172,10 @@ class XAnim_Export:
 
 	def __load_notes__(self, file):
 		lines_read = 0
+		note_count = 0
+		note_index = 0
 		self.notes = [NoteTrack(-1)] * 0
+		state = 0
 		for line in file:
 			lines_read += 1
 			line = line.lstrip()
@@ -183,9 +186,25 @@ class XAnim_Export:
 			if len(line_split) == 0:
 				continue
 
-			if line_split[0] == "NOTETRACKS":
-				continue
-			
+			# Skipping the extraneous data seems to be the fastest way to load these
+			# All relevent notes follow a numkeys label
+			if state == 0 and line_split[0] == "NUMKEYS":
+				note_count = int(line_split[1])
+
+				# Start looking for frames if there are actually any keys
+				if note_count != 0:
+					state = 1
+			elif state == 1 and line_split[0] == "FRAME":
+				frame = int(line_split[1])
+				string = line_split[2][1:-1]
+				note = NoteTrack(frame, string)
+				self.notes.append(note)
+
+				if note_index == note_count:
+					note_index = 0
+					note_count = 0
+					state = 0
+					
 			"""
 			TODO: Add notetrack read support - implicitly handle both WAW and BO1 styles
 				The embedded notetrack format appears to be somewhat inconsistent between WaW and BO1
