@@ -1,5 +1,6 @@
 from itertools import islice
 from notetrack import NoteTrack
+from time import strftime
 
 # In the context of an XANIM_EXPORT file, a 'part' is essentially a bone
 class PartInfo:
@@ -200,6 +201,8 @@ class XAnim_Export:
 
 	def WriteFile(self, path):
 		file = open(path, "w")
+		file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
+
 		file.write("ANIMATION\n")
 		file.write("VERSION %d\n\n" % self.version)
 	
