@@ -172,7 +172,7 @@ class XAnim_Export:
 
 	def __load_notes__(self, file):
 		lines_read = 0
-		self.notes = []
+		self.notes = [NoteTrack(-1)] * 0
 		for line in file:
 			lines_read += 1
 			line = line.lstrip()
@@ -187,7 +187,7 @@ class XAnim_Export:
 				continue
 			
 			"""
-			TODO: Add notetrack read support
+			TODO: Add notetrack read support - implicitly handle both WAW and BO1 styles
 				The embedded notetrack format appears to be somewhat inconsistent between WaW and BO1
 				This needs to be addressed
 			"""
@@ -226,7 +226,26 @@ class XAnim_Export:
 				file.write("Y %f %f %f\n" % (part.matrix[1][0], part.matrix[1][1], part.matrix[1][2]))
 				file.write("Z %f %f %f\n\n" % (part.matrix[2][0], part.matrix[2][1], part.matrix[2][2]))
 
-		# TODO: Verify how notetracks work across versions
-		if len(self.notes) > 0:
-			raise ValueError("len(notes) > 0 - notes aren't currently supported")
-		file.write("NUMKEYS %d\n" % len(self.notes))
+		# NOTE: Despite having the same version number, BO1 supports the NUMKEYS style embedded notetracks
+		#  While WAW doesn't, so in order to support both we'll use the WAW way since both games support it
+		# TODO: Verify how notetracks work across versions (Specifically for CoD2)
+		# TODO: Support for NT_EXPORT file generation - and automatically formatting the XANIM_EXPORT to correspond to this
+
+		# WAW Style
+		file.write("NOTETRACKS\n\n")
+		for part_index, part in enumerate(self.parts):
+			file.write("PART %d\n" % part_index)
+			track_count = 0 if part_index != 0 else (1 if len(self.notes) != 0 else 0)
+			file.write("NUMTRACKS %d\n\n" % track_count)
+			if track_count != 0:
+				file.write("NOTETRACK 0\n")
+				file.write("NUMKEYS %d\n" % len(self.notes))
+				for note in self.notes:
+					file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
+				file.write("\n")
+
+		# BO1 Style (Just here for reference)
+		#file.write("NUMKEYS %d\n" % len(self.notes))
+		#	for note in self.notes:
+		#		file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
+		#	file.write("\n")
