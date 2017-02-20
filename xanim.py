@@ -99,7 +99,7 @@ class XAnim_Export:
 
 			if line_split[0] == "ANIMATION":
 				is_anim = True
-			elif is_anim == True:
+			elif is_anim == True and line_split[0] == "VERSION":
 				self.version = int(line_split[1])
 				return lines_read
 
