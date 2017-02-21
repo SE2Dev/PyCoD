@@ -1,4 +1,4 @@
-from itertools import islice
+from itertools import islice, repeat
 from notetrack import NoteTrack
 from time import strftime
 
@@ -31,10 +31,18 @@ class XModel_Export:
 	def __init__(self, path=None):
 		if(path is None):
 			self.bones = []
+			self.verts = []
+			self.indices = []
+			self.normals = []
+			self.colors = []
+			self.uvs = []
+
+			self.bone_groups = []
+			self.mesh_groups = []
+			self.material_groups = []
 		else:
 			self.LoadFile(path)
 
-	
 	def __load_header__(self, file):
 		lines_read = 0
 		state = 0
@@ -135,42 +143,15 @@ class XModel_Export:
 
 		return lines_read
 
-	def __load_verts__(self, file):
-		lines_read = 0
-		vert_count = 0
-
-		for line in file:
-			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
-
-			line_split = line.split()
-			if len(line_split) == 0:
-				continue
-
-			if line_split[0] == "NUMVERTS":
-				vert_count = int(line_split[1])
-				self.verts = [None] * vert_count
-				self.weights = [None] * vert_count
-				break
-
-		for vertex in range(vert_count):
-			lines_read += self.__load_vert__(file, vert_count)
-
-		return lines_read
-
 	def __load_vert__(self, file, vert_count):
 		lines_read = 0
-
-		# keeps track of the importer state for a given bone
 		state = 0
 
 		vert_index = -1
 		vert = None
 
 		bone_count = 0 # The number of bones influencing this vertex
-		weights = []
+		bones_read = 0 # The number of bone weights we've read for this vert
 
 		for line in file:
 			lines_read += 1
@@ -200,23 +181,20 @@ class XModel_Export:
 			elif state == 3 and line_split[0] == "BONE":
 				bone = int(line_split[1])
 				influence = float(line_split[2])
-				# Each weight is a tuple in the format (bone, influence)
-				weights.append((bone, influence))
-				if len(weights) == bone_count:
-					self.weights[vert_index] = weights
+
+				self.bone_groups[bone].append((vert_index, influence))
+				bones_read += 1
+				if bones_read == bone_count:
 					state = -1
 					return lines_read
 		
 		return lines_read
 
-	def __load_faces__(self, file):
+	def __load_verts__(self, file):
 		lines_read = 0
-		face_count = 0
+		vert_count = 0
 
-		self.indices = []
-		self.normals = []
-		self.colors = []
-		self.uvs = []
+		self.bone_groups = [[] for i in repeat(None, len(self.bones))]
 
 		for line in file:
 			lines_read += 1
@@ -228,26 +206,21 @@ class XModel_Export:
 			if len(line_split) == 0:
 				continue
 
-			for i, split in enumerate(line_split):
-				if split[-1:] == ',':
-					line_split[i] = split.rstrip(",")
-
-			if line_split[0] == "NUMFACES":
-				face_count = int(line_split[1])
+			if line_split[0] == "NUMVERTS":
+				vert_count = int(line_split[1])
+				self.verts = [None] * vert_count
+				self.weights = [None] * vert_count
 				break
-		
-		for face in range(face_count):
-			lines_read += self.__load_face__(file, face_count)
+
+		for vertex in range(vert_count):
+			lines_read += self.__load_vert__(file, vert_count)
 
 		return lines_read
 
 	def __load_face__(self, file, face_count):
 		lines_read = 0
-
-		# keeps track of the importer state for a given bone
 		state = 0
 
-		face_index = -1
 		face = None
 
 		vert_number = -1
@@ -271,11 +244,18 @@ class XModel_Export:
 					line_split[i] = split.rstrip(",")
 
 			if state == 0 and line_split[0] == "TRI":
-				face_index = int(line_split[1])
-				if(face_index >= face_count):
-					raise ValueError("face_count does not index face_index -- %d not in [0, %d)" % (face_index, face_count))
+				mesh_index = int(line_split[1])
+				extend_size = (mesh_index + 1) - len(self.mesh_groups)
+				if extend_size > 0:
+					self.mesh_groups.extend([[] for i in repeat(None, extend_size)])
+					
+				material_index = int(line_split[2])
+				extend_size = (material_index + 1) - len(self.material_groups)
+				if extend_size > 0:
+					self.material_groups.extend([[] for i in repeat(None, extend_size)])
 				state = 1
 			elif state == 1 and line_split[0] == "VERT":
+				indices[vert_number] = int(line_split[1])
 				vert_number += 1
 				state = 2
 			elif state == 2 and line_split[0] == "NORMAL":
@@ -291,10 +271,47 @@ class XModel_Export:
 					self.normals.append(normals)
 					self.colors.append(colors)
 					self.uvs.append(uvs)
+					self.material_groups[material_index].extend(indices)
+					self.mesh_groups[mesh_index].extend(indices)
 					return lines_read
 				else:
 					state = 1
 		
+		return lines_read
+
+	def __load_faces__(self, file):
+		lines_read = 0
+		face_count = 0
+
+		self.indices = []
+		self.normals = []
+		self.colors = []
+		self.uvs = []
+
+		self.mesh_groups = []
+		self.material_groups = []
+
+		for line in file:
+			lines_read += 1
+			line = line.lstrip()
+			if line.startswith("//"):
+				continue
+
+			line_split = line.split()
+			if len(line_split) == 0:
+				continue
+
+			for i, split in enumerate(line_split):
+				if split[-1:] == ',':
+					line_split[i] = split.rstrip(",")
+
+			if line_split[0] == "NUMFACES":
+				face_count = int(line_split[1])
+				break
+		
+		for face in range(face_count):
+			lines_read += self.__load_face__(file, face_count)
+
 		return lines_read
 
 	def __load_meshes__(self, file):
@@ -386,10 +403,21 @@ class XModel_Export:
 		# file automatically keeps track of what line its on across calls
 		self.__load_header__(file)
 		self.__load_bones__(file)
+		
 		self.__load_verts__(file)
 		self.__load_faces__(file)
+		
 		self.__load_meshes__(file)
 		self.__load_materials__(file)
+
+		for group_index, group in enumerate(self.bone_groups):
+			self.bone_groups[group_index] = list(set(group))
+
+		for group_index, group in enumerate(self.mesh_groups):
+			self.mesh_groups[group_index] = list(set(group))
+
+		for group_index, group in enumerate(self.material_groups):
+			self.material_groups[group_index] = list(set(group))
 
 		file.close()
 
