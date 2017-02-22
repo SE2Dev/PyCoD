@@ -558,3 +558,5 @@ class Model(object):
 		for material_index, material in enumerate(self.materials):
 			material.save(file, material_index)
 
+		file.close()
+
