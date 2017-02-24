@@ -1,9 +1,9 @@
-class NoteTrack:
+class Note:
 	def __init__(self, frame, string=""):
 		self.frame = frame
 		self.string = string
 
-class NoteTrack_Export:
+class NoteTrack:
 	def __init__(self, path=None):
 		if(path is None):
 			self.notes = []
@@ -31,7 +31,7 @@ class NoteTrack_Export:
 			elif line_split[0] == "NUMKEYS":
 				note_count = int(line_split[1])
 			elif line_split[0] == "FRAME":
-				note = NoteTrack(int(line_split[1]), line_split[2][1:-1])
+				note = Note(int(line_split[1]), line_split[2][1:-1])
 				self.notes.append(note)
 		file.close()	
 

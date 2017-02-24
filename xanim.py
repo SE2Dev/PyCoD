@@ -1,6 +1,7 @@
 from itertools import islice
 from notetrack import NoteTrack
 from time import strftime
+from os.path import dirname, basename, splitext
 
 def __clamp_float__(value, range=(0.0, 1.0)):
 	return max(min(value, range[1]), range[0])
@@ -184,7 +185,7 @@ class XAnim_Export:
 		lines_read = 0
 		note_count = 0
 		note_index = 0
-		self.notes = [NoteTrack(-1)] * 0
+		self.notes = [Note(-1)] * 0
 		state = 0
 		for line in file:
 			lines_read += 1
@@ -207,7 +208,7 @@ class XAnim_Export:
 			elif state == 1 and line_split[0] == "FRAME":
 				frame = int(line_split[1])
 				string = line_split[2][1:-1]
-				note = NoteTrack(frame, string)
+				note = Note(frame, string)
 				self.notes.append(note)
 
 				if note_index == note_count:
@@ -231,7 +232,15 @@ class XAnim_Export:
 		self.__load_notes__(file)
 		file.close()
 
-	def WriteFile(self, path):
+	# Write an XANIM_EXPORT file
+	# if embed_notes is False, a NT_EXPORT file will be created
+	def WriteFile(self, path, embed_notes=True):
+		first_frame = min([frame.frame for frame in self.frames])
+		last_frame = max([frame.frame for frame in self.frames])
+
+		if last_frame - first_frame != len(self.frames):
+			raise ValueError("The keyed frame count and number of frames do not match")
+
 		file = open(path, "w")
 		file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
 
@@ -262,16 +271,29 @@ class XAnim_Export:
 
 		# WAW Style
 		file.write("NOTETRACKS\n\n")
-		for part_index, part in enumerate(self.parts):
-			file.write("PART %d\n" % part_index)
-			track_count = 0 if part_index != 0 else (1 if len(self.notes) != 0 else 0)
-			file.write("NUMTRACKS %d\n\n" % track_count)
-			if track_count != 0:
-				file.write("NOTETRACK 0\n")
-				file.write("NUMKEYS %d\n" % len(self.notes))
-				for note in self.notes:
-					file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
-				file.write("\n")
+		if embed_notes == True:
+			for part_index, part in enumerate(self.parts):
+				file.write("PART %d\n" % part_index)
+				track_count = 0 if part_index != 0 else (1 if len(self.notes) != 0 else 0)
+				file.write("NUMTRACKS %d\n\n" % track_count)
+				if track_count != 0:
+					file.write("NOTETRACK 0\n")
+					file.write("NUMKEYS %d\n" % len(self.notes))
+					for note in self.notes:
+						file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
+					file.write("\n")
+		
+		# Write a NT_EXPORT file
+		else:
+			notetrack = NoteTrack()
+			notetrack.notes = self.notes
+			notetrack.first_frame = first_frame
+			notetrack.frame_count = last_frame - first_frame
+			
+			_dir = dirname(path)
+			_file = splitext(basename(path))[0]
+
+			notetrack.WriteFile("%s/%s.NT_EXPORT" % (_dir, _file))
 
 		# BO1 Style (Just here for reference)
 		#file.write("NUMKEYS %d\n" % len(self.notes))
