@@ -78,11 +78,15 @@ class FaceVertex(object):
 		self.color = color
 		self.uv = uv
 
-	def save(self, file, index_offset):
-		file.write("VERT %d\n" % (self.vertex + index_offset))
-		file.write("NORMAL %f %f %f\n" % self.normal)
-		file.write("COLOR %f %f %f %f\n" % self.color)
-		file.write("UV 1 %f %f\n\n" % self.uv)
+	def save(self, file, version, index_offset):
+		vert_id = self.vertex + index_offset
+		if version == 5:
+			file.write("VERT %d %f %f %f %f %f\n" % ((vert_id,) + self.normal + self.uv))
+		else:
+			file.write("VERT %d\n" % vert_id)
+			file.write("NORMAL %f %f %f\n" % self.normal)
+			file.write("COLOR %f %f %f %f\n" % self.color)
+			file.write("UV 1 %f %f\n\n" % self.uv)
 
 class Face(object):
 	__slots__ = ('mesh_id', 'material_id', 'indices')
@@ -91,7 +95,7 @@ class Face(object):
 		self.material_id = material_id
 		self.indices = [None] * 3
 
-	def __load_face__(self, file, face_count):
+	def __load_face__(self, file, version, face_count):
 		lines_read = 0
 		state = 0
 
@@ -123,7 +127,19 @@ class Face(object):
 				vert = FaceVertex()
 				vert.vertex = int(line_split[1])
 				vert_number += 1
-				state = 2
+
+				if version == 5:
+					vert.normal = (float(line_split[2]), float(line_split[3]), float(line_split[4]))
+					vert.uv = (float(line_split[5]), float(line_split[6]))
+					self.indices[vert_number] = vert
+					if vert_number == 2:
+						return lines_read
+					else:
+						state == 1
+				# for Version 6 - continue loading the vertex properties for the last vertex
+				else:
+					state = 2
+
 			elif state == 2 and line_split[0] == "NORMAL":
 				vert.normal = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
 				state = 3
@@ -140,10 +156,10 @@ class Face(object):
 		
 		return lines_read
 
-	def save(self, file, index_offset):
+	def save(self, file, version, index_offset):
 		file.write("TRI %d %d %d %d\n" % (self.mesh_id, self.material_id, 0, 0))
 		for i in range(3):
-			self.indices[i].save(file, index_offset)
+			self.indices[i].save(file, version, index_offset)
 		file.write("\n")
 
 class Material:
@@ -172,20 +188,21 @@ class Material:
 		self.blinn = None
 		self.phong = None
 
-	def save(self, file, material_index):
+	def save(self, file, version, material_index):
 		file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, self.image))
-		file.write("COLOR %f %f %f %f\n" % self.color)
-		file.write("TRANSPARENCY %f %f %f %f\n" % self.transparency)
-		file.write("AMBIENTCOLOR %f %f %f %f\n" % self.color_ambient)
-		file.write("INCANDESCENCE %f %f %f %f\n" % self.incandescence)
-		file.write("COEFFS %f %f\n" % self.coeffs)
-		file.write("GLOW %f %d\n" % self.glow)
-		file.write("REFRACTIVE %d %f\n" % self.refractive)
-		file.write("SPECULARCOLOR %f %f %f %f\n" % self.color_specular)
-		file.write("REFLECTIVECOLOR %f %f %f %f\n" % self.color_reflective)
-		file.write("REFLECTIVE %d %f\n" % self.reflective)
-		file.write("BLINN %f %f\n" % self.blinn)
-		file.write("PHONG %f\n\n" % self.phong)
+		if version == 6:
+			file.write("COLOR %f %f %f %f\n" % self.color)
+			file.write("TRANSPARENCY %f %f %f %f\n" % self.transparency)
+			file.write("AMBIENTCOLOR %f %f %f %f\n" % self.color_ambient)
+			file.write("INCANDESCENCE %f %f %f %f\n" % self.incandescence)
+			file.write("COEFFS %f %f\n" % self.coeffs)
+			file.write("GLOW %f %d\n" % self.glow)
+			file.write("REFRACTIVE %d %f\n" % self.refractive)
+			file.write("SPECULARCOLOR %f %f %f %f\n" % self.color_specular)
+			file.write("REFLECTIVECOLOR %f %f %f %f\n" % self.color_reflective)
+			file.write("REFLECTIVE %d %f\n" % self.reflective)
+			file.write("BLINN %f %f\n" % self.blinn)
+			file.write("PHONG %f\n\n" % self.phong)
 
 class Mesh(object):
 	__slots__ = ('name', 'verts', 'faces', 'bone_groups', 'material_groups')
@@ -224,7 +241,7 @@ class Mesh(object):
 
 		return lines_read
 
-	def __load_faces__(self, file):
+	def __load_faces__(self, file, version):
 		lines_read = 0
 		face_count = 0
 
@@ -250,7 +267,7 @@ class Mesh(object):
 				break
 		
 		for face in self.faces:
-			lines_read += face.__load_face__(file, face_count)
+			lines_read += face.__load_face__(file, version, face_count)
 
 		return lines_read
 
@@ -282,6 +299,8 @@ class Model(object):
 				state = 1
 			elif state == 1 and line_split[0] == "VERSION":
 				self.version = int(line_split[1])
+				if self.version not in [5,6]:
+					raise ValueError("Invalid model version: %d - must be 5 or 6" % self.version)
 				return lines_read
 
 		return lines_read
@@ -428,7 +447,7 @@ class Model(object):
 			for group_index, group in enumerate(mesh.material_groups):
 				mesh.material_groups[group_index] = list(set(group))
 
-	def __load_materials__(self, file):
+	def __load_materials__(self, file, version):
 		lines_read = 0
 
 		material_count = None
@@ -459,6 +478,12 @@ class Model(object):
 				material = Material(name, type, image)
 				self.materials[index] = Material(name, type, image)
 				material = self.materials[index] 
+
+				if version == 5:
+					continue
+
+			# All of the properties below are only present in version 6
+			# But 
 			elif line_split[0] == "COLOR":
 				material.color = (float(line_split[1]), float(line_split[2]), float(line_split[3]), float(line_split[4]))
 			elif line_split[0] == "TRANSPARENCY":
@@ -496,21 +521,28 @@ class Model(object):
 		default_mesh = Mesh("$default")
 
 		default_mesh.__load_verts__(file, self.bones)
-		default_mesh.__load_faces__(file)
+		default_mesh.__load_faces__(file, self.version)
 		
 		self.__load_meshes__(file)
-		self.__load_materials__(file)
+		self.__load_materials__(file, self.version)
 
 		self.__generate_meshes__(default_mesh)
 
  		file.close()
 
-	def WriteFile(self, path):
+	# Write an xmodel_export file, by default it uses the objects self.version
+	def WriteFile(self, path, version=None):
+		if version is None:
+			version = self.version
+
+		if version not in [5,6]:
+			raise ValueError("Invalid model version: %d - must be 5 or 6" % version)
+
 		file = open(path, "w")
 		file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
 
 		file.write("MODEL\n")
-		file.write("VERSION %d\n\n" % self.version)
+		file.write("VERSION %d\n\n" % version)
 		
 		# Bone Hierarchy
 		file.write("NUMBONES %d\n" % len(self.bones))
@@ -545,7 +577,7 @@ class Model(object):
 		file.write("NUMFACES %d\n" % face_count)
 		for mesh_index, mesh in enumerate(self.meshes):
 			for face in mesh.faces:
-				face.save(file, vert_offsets[mesh_index])
+				face.save(file, version, vert_offsets[mesh_index])
 
 		# Meshes
 		file.write("NUMOBJECTS %d\n" % len(self.meshes))
@@ -556,7 +588,7 @@ class Model(object):
 		# Materials
 		file.write("NUMMATERIALS %d\n" % len(self.materials))
 		for material_index, material in enumerate(self.materials):
-			material.save(file, material_index)
+			material.save(file, version, material_index)
 
 		file.close()
 
