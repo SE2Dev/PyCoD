@@ -1,6 +1,12 @@
 from itertools import repeat
 from time import strftime
 
+def __clamp_float__(value, range=(0.0, 1.0)):
+	return max(min(value, range[1]), range[0])
+
+def __clamp_multi__(value, range=(0.0, 1.0)):
+	return tuple([max(min(v, range[1]), range[0]) for v in value])
+
 class Bone(object):
 	__slots__ = ('name', 'parent', 'offset', 'matrix')
 	def __init__(self, name, parent=-1):
@@ -81,10 +87,10 @@ class FaceVertex(object):
 	def save(self, file, version, index_offset):
 		vert_id = self.vertex + index_offset
 		if version == 5:
-			file.write("VERT %d %f %f %f %f %f\n" % ((vert_id,) + self.normal + self.uv))
+			file.write("VERT %d %f %f %f %f %f\n" % ((vert_id,) + __clamp_multi__(self.normal) + self.uv))
 		else:
 			file.write("VERT %d\n" % vert_id)
-			file.write("NORMAL %f %f %f\n" % self.normal)
+			file.write("NORMAL %f %f %f\n" % __clamp_multi__(self.normal))
 			file.write("COLOR %f %f %f %f\n" % self.color)
 			file.write("UV 1 %f %f\n\n" % self.uv)
 
@@ -555,9 +561,9 @@ class Model(object):
 			file.write("BONE %d\n" % bone_index)
 			file.write("OFFSET %f %f %f\n" % (bone.offset[0], bone.offset[1], bone.offset[2]))
 			file.write("SCALE %f %f %f\n" % (1.0, 1.0, 1.0))
-			file.write("X %f %f %f\n" % bone.matrix[0])
-			file.write("Y %f %f %f\n" % bone.matrix[1])
-			file.write("Z %f %f %f\n\n" % bone.matrix[2])
+			file.write("X %f %f %f\n" %   __clamp_multi__(bone.matrix[0]))
+			file.write("Y %f %f %f\n" %   __clamp_multi__(bone.matrix[1]))
+			file.write("Z %f %f %f\n\n" % __clamp_multi__(bone.matrix[2]))
 		file.write("\n")
 
 		# Vertices

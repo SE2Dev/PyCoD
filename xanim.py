@@ -2,6 +2,12 @@ from itertools import islice
 from notetrack import NoteTrack
 from time import strftime
 
+def __clamp_float__(value, range=(0.0, 1.0)):
+	return max(min(value, range[1]), range[0])
+
+def __clamp_multi__(value, range=(0.0, 1.0)):
+	return tuple([max(min(v, range[1]), range[0]) for v in value])
+
 # In the context of an XANIM_EXPORT file, a 'part' is essentially a bone
 class PartInfo:
 	def __init__(self, name):
@@ -245,9 +251,9 @@ class XAnim_Export:
 				file.write("PART %d\n" % part_index)
 				# TODO: Investigate precision options
 				file.write("OFFSET %f %f %f\n" % (part.offset[0], part.offset[1], part.offset[2]))
-				file.write("X %f %f %f\n" % (part.matrix[0][0], part.matrix[0][1], part.matrix[0][2]))
-				file.write("Y %f %f %f\n" % (part.matrix[1][0], part.matrix[1][1], part.matrix[1][2]))
-				file.write("Z %f %f %f\n\n" % (part.matrix[2][0], part.matrix[2][1], part.matrix[2][2]))
+				file.write("X %f %f %f\n" % __clamp_multi__(part.matrix[0]))
+				file.write("Y %f %f %f\n" % __clamp_multi__(part.matrix[1]))
+				file.write("Z %f %f %f\n\n" % __clamp_multi__(part.matrix[2]))
 
 		# NOTE: Despite having the same version number, BO1 supports the NUMKEYS style embedded notetracks
 		#  While WAW doesn't, so in order to support both we'll use the WAW way since both games support it
