@@ -17,10 +17,6 @@ class NoteTrack:
 		self.frame_count = None
 		file = open(path, "r")
 		for line in file:
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
-
 			note_count = 0
 
 			line_split = line.split()

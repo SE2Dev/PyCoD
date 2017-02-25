@@ -33,9 +33,6 @@ class Vertex(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -112,9 +109,6 @@ class Face(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -229,9 +223,6 @@ class Mesh(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -255,9 +246,6 @@ class Mesh(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -292,10 +280,6 @@ class Model(object):
 		state = 0
 		for line in file:
 			lines_read += 1
-			
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -322,9 +306,6 @@ class Model(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -366,9 +347,6 @@ class Model(object):
 		bones_read = 0
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -396,9 +374,6 @@ class Model(object):
 		meshes_read = 0
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -461,9 +436,6 @@ class Model(object):
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:

@@ -37,9 +37,6 @@ class Frame:
 
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -96,9 +93,6 @@ class XAnim_Export:
 		is_anim = False
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -118,9 +112,6 @@ class XAnim_Export:
 		parts_read = 0
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -145,9 +136,6 @@ class XAnim_Export:
 		self.frames = [Frame(-1)] * 0
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
@@ -189,9 +177,6 @@ class XAnim_Export:
 		state = 0
 		for line in file:
 			lines_read += 1
-			line = line.lstrip()
-			if line.startswith("//"):
-				continue
 
 			line_split = line.split()
 			if len(line_split) == 0:
