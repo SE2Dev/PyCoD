@@ -491,10 +491,10 @@ class Model(object):
 			elif line_split[0] == "MATERIAL":
 				index = int(line_split[1])
 				name = line_split[2][1:-1]
-				type = line_split[3][1:-1]
+				material_type = line_split[3][1:-1]
 				images = deserialize_image_string(line_split[4][1:-1])
-				material = Material(name, type, images)
-				self.materials[index] = Material(name, type, images)
+				material = Material(name, material_type, images)
+				self.materials[index] = Material(name, material_type, images)
 				material = self.materials[index] 
 
 				if version == 5:
