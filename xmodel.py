@@ -27,13 +27,23 @@ def deserialize_image_string(ref_string):
 		out = {"color": ref_string}
 	return out
 
-def serialize_image_string(image_dict):
-	out = ""
-	prefix = ''
-	for key, value in image_dict.items():
-		out += "%s%s:%s" % (prefix, key, value)
-		prefix = ' '
-	return out
+def serialize_image_string(image_dict, allow_extensions=True):
+	if allow_extensions:
+		out = ""
+		prefix = ''
+		for key, value in image_dict.items():
+			out += "%s%s:%s" % (prefix, key, value)
+			prefix = ' '
+		return out
+	else:
+		# For xmodel_export version 5, the material name and image ref may be the same
+		# in which case - the image dict extension shouldn't be used
+		if 'color' in image_dict: # use the color map
+			return image_dict['color']
+		elif len(image_dict) != 0: # if it cant be found - grab the first image
+			key, value = image_dict.items()[0]
+			return value
+		return ""
 
 class Bone(object):
 	__slots__ = ('name', 'parent', 'offset', 'matrix')
@@ -218,7 +228,7 @@ class Material:
 
 	def save(self, file, version, material_index):
 		if version == 5:
-			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images)))
+			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images, allow_extensions=False)))
 		else:
 			file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, serialize_image_string(self.images)))
 			file.write("COLOR %f %f %f %f\n" % self.color)
