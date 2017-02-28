@@ -7,6 +7,34 @@ def __clamp_float__(value, range=(0.0, 1.0)):
 def __clamp_multi__(value, range=(0.0, 1.0)):
 	return tuple([max(min(v, range[1]), range[0]) for v in value])
 
+def deserialize_image_string(ref_string):
+	out = {}
+	refs = ref_string.split()
+	for ref in refs:
+		if ':' not in ref:
+			continue
+		kv = ref.split(':')
+		c = len(kv)
+		if c > 2 or c < 1:
+			continue
+		elif c == 1:
+			key, value = (kv[0], "")
+		elif c == 2:
+			key, value = kv
+
+		out[key.lower()] = value.lstrip()
+	if len(out) == 0:
+		out = {"color": ref_string}
+	return out
+
+def serialize_image_string(image_dict):
+	out = ""
+	prefix = ''
+	for key, value in image_dict.items():
+		out += "%s%s:%s" % (prefix, key, value)
+		prefix = ' '
+	return out
+
 class Bone(object):
 	__slots__ = ('name', 'parent', 'offset', 'matrix')
 	def __init__(self, name, parent=-1):
@@ -164,17 +192,17 @@ class Face(object):
 
 class Material:
 	__slots__ = (
-					'name', 'type', 'image',
+					'name', 'type', 'images',
 				 	'color', 'color_ambient', 'color_specular', 'color_reflective',
 				 	'transparency', 'incandescence', 
 				 	'coeffs', 'glow',
 				 	'refractive', 'reflective',
 				 	'blinn', 'phong'
 				)
-	def __init__(self, name, material_type, image):
+	def __init__(self, name, material_type, images):
 		self.name = name
 		self.type = material_type
-		self.image = image
+		self.images = images
 		self.color = None
 		self.color_ambient = None
 		self.color_specular = None
@@ -189,8 +217,10 @@ class Material:
 		self.phong = None
 
 	def save(self, file, version, material_index):
-		file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, self.image))
-		if version == 6:
+		if version == 5:
+			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images)))
+		else:
+			file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, serialize_image_string(self.images)))
 			file.write("COLOR %f %f %f %f\n" % self.color)
 			file.write("TRANSPARENCY %f %f %f %f\n" % self.transparency)
 			file.write("AMBIENTCOLOR %f %f %f %f\n" % self.color_ambient)
@@ -452,9 +482,9 @@ class Model(object):
 				index = int(line_split[1])
 				name = line_split[2][1:-1]
 				type = line_split[3][1:-1]
-				image = line_split[4][1:-1]
-				material = Material(name, type, image)
-				self.materials[index] = Material(name, type, image)
+				images = deserialize_image_string(line_split[4][1:-1])
+				material = Material(name, type, images)
+				self.materials[index] = Material(name, type, images)
 				material = self.materials[index] 
 
 				if version == 5:
