@@ -519,7 +519,7 @@ class Model(object):
 		
 		return lines_read
 
-	def LoadFile(self, path):
+	def LoadFile(self, path, split_meshes=True):
 		file = open(path, "r")
 		# file automatically keeps track of what line its on across calls
 		self.__load_header__(file)
@@ -531,12 +531,16 @@ class Model(object):
 		default_mesh.__load_verts__(file, self.bones)
 		default_mesh.__load_faces__(file, self.version)
 		
-		self.__load_meshes__(file)
+		if split_meshes:
+			self.__load_meshes__(file)
 		self.__load_materials__(file, self.version)
 
-		self.__generate_meshes__(default_mesh)
+		if split_meshes:
+			self.__generate_meshes__(default_mesh)
+		else:
+			self.meshes = [default_mesh]
 
- 		file.close()
+		file.close()
 
 	# Write an xmodel_export file, by default it uses the objects self.version
 	def WriteFile(self, path, version=None):
