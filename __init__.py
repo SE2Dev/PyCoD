@@ -1,1 +1,1 @@
-# __init__.py (use this if you plan to use pycod as a (sub)package - otherwise it should be removed)
+# __init__.py (use this if you plan to use pycod as a package)
