@@ -298,7 +298,7 @@ class XAnim_Export(object):
 			last_frame = max([frame.frame for frame in self.frames]) + 1
 
 		if last_frame - first_frame != len(self.frames):
-			raise ValueError("The keyed frame count and number of frames do not match")
+			raise ValueError("The keyed frame count and number of frames do not match (%d != %d)" % (last_frame - first_frame, len(self.frames)))
 
 		file = open(path, "w")
 		file.write(header_message)
