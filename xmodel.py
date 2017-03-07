@@ -200,7 +200,7 @@ class Face(object):
 			self.indices[i].save(file, version, index_offset)
 		file.write("\n")
 
-class Material:
+class Material(object):
 	__slots__ = (
 					'name', 'type', 'images',
 				 	'color', 'color_ambient', 'color_specular', 'color_reflective',
@@ -213,20 +213,19 @@ class Material:
 		self.name = name
 		self.type = material_type
 		self.images = images
-		self.color = None
-		self.color_ambient = None
-		self.color_specular = None
-		self.color_reflective = None
-		self.transparency = None
-		self.incandescence = None
-		self.coeffs = None
-		self.glow = None
-		self.refractive = None
-		self.reflective = None
-		self.blinn = None
-		self.phong = None
+		self.color = (0.0, 0.0, 0.0, 1.0)
+		self.color_ambient = (0.0, 0.0, 0.0, 1.0)
+		self.color_specular = (-1.0, -1.0, -1.0, 1.0)
+		self.color_reflective = (-1.0, -1.0, -1.0, 1.0)
+		self.transparency = (0.0, 0.0, 0.0, 1.0)
+		self.incandescence = (0.0, 0.0, 0.0, 1.0)
+		self.coeffs = (0.8, 0.0)
+		self.glow = (0.0, 0)
+		self.refractive = (6, 1.0)
+		self.reflective = (-1, 1.0)
+		self.blinn = (-1.0, -1.0)
+		self.phong = -1.0
 
-	def save(self, file, version, material_index):
 		if version == 5:
 			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images, allow_extensions=False)))
 		else:
