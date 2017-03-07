@@ -27,8 +27,8 @@ def deserialize_image_string(ref_string):
 		out = {"color": ref_string}
 	return out
 
-def serialize_image_string(image_dict, allow_extensions=True):
-	if allow_extensions:
+def serialize_image_string(image_dict, extended_features=True):
+	if extended_features == True:
 		out = ""
 		prefix = ''
 		for key, value in image_dict.items():
@@ -55,9 +55,12 @@ class Bone(object):
 
 class Vertex(object):
 	__slots__ = ("offset", "weights")
-	def __init__(self):
-		self.offset = None
-		self.weights = [] # An array of tuples in the format (bone index, influence)
+	def __init__(self, offset=None, weights=None):
+		self.offset = offset
+		if weights is None:
+			self.weights = [] # An array of tuples in the format (bone index, influence)
+		else:
+			self.weights = weights
 
 	def __load_vert__(self, file, vert_count, mesh):
 		lines_read = 0
@@ -226,10 +229,11 @@ class Material(object):
 		self.blinn = (-1.0, -1.0)
 		self.phong = -1.0
 
+	def save(self, file, version, material_index, extended_features=True):
 		if version == 5:
-			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images, allow_extensions=False)))
+			file.write('MATERIAL %d "%s"\n' % (material_index, serialize_image_string(self.images, extended_features=extended_features)))
 		else:
-			file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, serialize_image_string(self.images)))
+			file.write('MATERIAL %d "%s" "%s" "%s"\n' % (material_index, self.name, self.type, serialize_image_string(self.images, extended_features=extended_features)))
 			file.write("COLOR %f %f %f %f\n" % self.color)
 			file.write("TRANSPARENCY %f %f %f %f\n" % self.transparency)
 			file.write("AMBIENTCOLOR %f %f %f %f\n" % self.color_ambient)
@@ -548,11 +552,10 @@ class Model(object):
 			self.__generate_meshes__(default_mesh)
 		else:
 			self.meshes = [default_mesh]
-
 		file.close()
 
 	# Write an xmodel_export file, by default it uses the objects self.version
-	def WriteFile(self, path, version=None):
+	def WriteFile(self, path, version=None, extended_features=True):
 		if version is None:
 			version = self.version
 
@@ -609,7 +612,7 @@ class Model(object):
 		# Materials
 		file.write("NUMMATERIALS %d\n" % len(self.materials))
 		for material_index, material in enumerate(self.materials):
-			material.save(file, version, material_index)
+			material.save(file, version, material_index, extended_features=extended_features)
 
 		file.close()
 
