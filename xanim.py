@@ -219,14 +219,18 @@ class XAnim_Export:
 
 	# Write an XANIM_EXPORT file
 	# if embed_notes is False, a NT_EXPORT file will be created
-	def WriteFile(self, path, embed_notes=True):
-		first_frame = min([frame.frame for frame in self.frames])
-		last_frame = max([frame.frame for frame in self.frames])
+	def WriteFile(self, path, header_message="", embed_notes=True):
+		first_frame = 0
+		last_frame = 0
+		if len(self.frames) != 0:
+			first_frame = min([frame.frame for frame in self.frames])
+			last_frame = max([frame.frame for frame in self.frames]) + 1
 
 		if last_frame - first_frame != len(self.frames):
 			raise ValueError("The keyed frame count and number of frames do not match")
 
 		file = open(path, "w")
+		file.write(header_message)
 		file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
 
 		file.write("ANIMATION\n")
