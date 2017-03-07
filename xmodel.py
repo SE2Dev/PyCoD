@@ -1,10 +1,10 @@
 from itertools import repeat
 from time import strftime
 
-def __clamp_float__(value, range=(0.0, 1.0)):
+def __clamp_float__(value, range=(-1.0, 1.0)):
 	return max(min(value, range[1]), range[0])
 
-def __clamp_multi__(value, range=(0.0, 1.0)):
+def __clamp_multi__(value, range=(-1.0, 1.0)):
 	return tuple([max(min(v, range[1]), range[0]) for v in value])
 
 def deserialize_image_string(ref_string):
