@@ -72,21 +72,25 @@ def __clamp_multi__(value, range=(-1.0, 1.0)):
 	return tuple([max(min(v, range[1]), range[0]) for v in value])
 
 # In the context of an XANIM_EXPORT file, a 'part' is essentially a bone
-class PartInfo:
+class PartInfo(object):
+	__slots__=('name')
 	def __init__(self, name):
 		self.name = name
 
-class FramePart:
-	def __init__(self, offset=None):
-		if offset is None:
-			self.offset = None
+class FramePart(object):
+	__slots__=('offset', 'matrix')
+	def __init__(self, offset=None, matrix=None):
+		self.offset = offset
+		if matrix is None:
+			self.matrix = [(),(),()]
 		else:
-			self.offset = offset
-		self.matrix = [(),(),()]
+			self.matrix = matrix
 
-class Frame:
+class Frame(object):
+	__slots__=('frame', 'parts')
 	def __init__(self, frame):
 		self.frame = frame
+		self.parts = []
 
 	def __load_part__(self, file, part_count):
 		lines_read = 0
@@ -142,10 +146,15 @@ class Frame:
 			lines_read += self.__load_part__(file, part_count)
 		return lines_read
 
-class XAnim_Export:
+class XAnim_Export(object):
+	__slots__=('version', 'framerate', 'parts', 'frames', 'notes')
 	def __init__(self, path=None):
 		if(path is None):
+			self.version = None
+			self.framerate = None
 			self.parts = []
+			self.frames = []
+			self.notes = []
 		else:
 			self.LoadFile(path)
 
