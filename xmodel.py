@@ -8,6 +8,9 @@ def __clamp_multi__(value, range=(-1.0, 1.0)):
 	return tuple([max(min(v, range[1]), range[0]) for v in value])
 
 def deserialize_image_string(ref_string):
+	if len(ref_string) == 0:
+		return {"color": "$none.tga"}
+
 	out = {}
 	refs = ref_string.split()
 	for ref in refs:
