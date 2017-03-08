@@ -65,7 +65,7 @@ class Vertex(object):
 		else:
 			self.weights = weights
 
-	def __load_vert__(self, file, vert_count, mesh):
+	def __load_vert__(self, file, vert_count, mesh, vert_tok='VERT'):
 		lines_read = 0
 		state = 0
 
@@ -86,7 +86,7 @@ class Vertex(object):
 				if split[-1:] == ',':
 					line_split[i] = split.rstrip(",")
 
-			if state == 0 and line_split[0] == "VERT":
+			if state == 0 and line_split[0] == vert_tok:
 				vert_index = int(line_split[1])
 				if(vert_index >= vert_count):
 					raise ValueError("vert_count does not index vert_index -- %d not in [0, %d)" % (vert_index, vert_count))
@@ -109,8 +109,8 @@ class Vertex(object):
 		
 		return lines_read
 
-	def save(self, file, index):
-		file.write("VERT %d\n" % index)
+	def save(self, file, index, vert_tok_suffix=""):
+		file.write("VERT%s %d\n" % (vert_tok_suffix, index))
 		file.write("OFFSET %f %f %f\n" % self.offset)
 		file.write("BONES %d\n" % len(self.weights))
 		for weight in self.weights:
@@ -125,12 +125,12 @@ class FaceVertex(object):
 		self.color = color
 		self.uv = uv
 
-	def save(self, file, version, index_offset):
+	def save(self, file, version, index_offset, vert_tok_suffix=""):
 		vert_id = self.vertex + index_offset
 		if version == 5:
 			file.write("VERT %d %f %f %f %f %f\n" % ((vert_id,) + __clamp_multi__(self.normal) + self.uv))
 		else:
-			file.write("VERT %d\n" % vert_id)
+			file.write("VERT%s %d\n" % (vert_tok_suffix, vert_id))
 			file.write("NORMAL %f %f %f\n" % __clamp_multi__(self.normal))
 			file.write("COLOR %f %f %f %f\n" % self.color)
 			file.write("UV 1 %f %f\n\n" % self.uv)
@@ -142,7 +142,7 @@ class Face(object):
 		self.material_id = material_id
 		self.indices = [None] * 3
 
-	def __load_face__(self, file, version, face_count):
+	def __load_face__(self, file, version, face_count, vert_tok='VERT'):
 		lines_read = 0
 		state = 0
 
@@ -167,7 +167,7 @@ class Face(object):
 				self.mesh_id = int(line_split[1])	
 				self.material_id = int(line_split[2])
 				state = 1
-			elif state == 1 and line_split[0] == "VERT":
+			elif state == 1 and line_split[0] == vert_tok:
 				vert = FaceVertex()
 				vert.vertex = int(line_split[1])
 				vert_number += 1
@@ -200,10 +200,10 @@ class Face(object):
 		
 		return lines_read
 
-	def save(self, file, version, index_offset):
+	def save(self, file, version, index_offset, vert_tok_suffix=""):
 		file.write("TRI %d %d %d %d\n" % (self.mesh_id, self.material_id, 0, 0))
 		for i in range(3):
-			self.indices[i].save(file, version, index_offset)
+			self.indices[i].save(file, version, index_offset, vert_tok_suffix=vert_tok_suffix)
 		file.write("\n")
 
 class Material(object):
@@ -251,7 +251,7 @@ class Material(object):
 			file.write("PHONG %f\n\n" % self.phong)
 
 class Mesh(object):
-	__slots__ = ('name', 'verts', 'faces', 'bone_groups', 'material_groups')
+	__slots__ = ('name', 'verts', 'faces', 'bone_groups', 'material_groups', '__vert_tok')
 	def __init__(self, name):
 		self.name = name
 
@@ -261,12 +261,17 @@ class Mesh(object):
 		self.bone_groups = []
 		self.material_groups = []
 
-	def __load_verts__(self, file, bones):
+		# Used for handling VERT vs VERT32 without using a ton of if statements
+		self.__vert_tok = 'VERT'
+
+	def __load_verts__(self, file, model):
 		lines_read = 0
 		vert_count = 0
 
+		bones = model.bones
+		version = model.version
 		self.bone_groups = [[] for i in repeat(None, len(bones))]
-
+		
 		for line in file:
 			lines_read += 1
 
@@ -274,13 +279,19 @@ class Mesh(object):
 			if len(line_split) == 0:
 				continue
 
-			if line_split[0] == "NUMVERTS":
-				vert_count = int(line_split[1])
-				self.verts = [Vertex() for i in range(vert_count)]
-				break
+			if line_split[0] == 'NUMVERTS':
+				self.__vert_tok = 'VERT'
+			elif line_split[0] == 'NUMVERTS32':
+				self.__vert_tok = 'VERT32'
+			else:
+				continue
+
+			vert_count = int(line_split[1])
+			self.verts = [Vertex() for i in range(vert_count)]
+			break
 
 		for vertex in self.verts:
-			lines_read += vertex.__load_vert__(file, vert_count, self)
+			lines_read += vertex.__load_vert__(file, vert_count, self, vert_tok=self.__vert_tok)
 
 		return lines_read
 
@@ -307,12 +318,14 @@ class Mesh(object):
 				break
 		
 		for face in self.faces:
-			lines_read += face.__load_face__(file, version, face_count)
+			lines_read += face.__load_face__(file, version, face_count, vert_tok=self.__vert_tok)
 
 		return lines_read
 
 class Model(object):
 	__slots__ = ('name', 'version', 'bones', 'meshes', 'materials')
+	supported_versions = [5,6,7]
+
 	def __init__(self, name):
 		self.name = name
 		self.version = -1
@@ -335,8 +348,8 @@ class Model(object):
 				state = 1
 			elif state == 1 and line_split[0] == "VERSION":
 				self.version = int(line_split[1])
-				if self.version not in [5,6]:
-					raise ValueError("Invalid model version: %d - must be 5 or 6" % self.version)
+				if self.version not in Model.supported_versions:
+					raise ValueError("Invalid model version: %d - must be in %s" % (self.version, repr(Model.supported_versions)))
 				return lines_read
 
 		return lines_read
@@ -544,7 +557,7 @@ class Model(object):
 		# A global mesh containing all of the vertex and face data for the entire model
 		default_mesh = Mesh("$default")
 
-		default_mesh.__load_verts__(file, self.bones)
+		default_mesh.__load_verts__(file, self)
 		default_mesh.__load_faces__(file, self.version)
 		
 		if split_meshes:
@@ -558,12 +571,21 @@ class Model(object):
 		file.close()
 
 	# Write an xmodel_export file, by default it uses the objects self.version
-	def WriteFile(self, path, version=None, extended_features=True):
+	def WriteFile(self, path, version=None, extended_features=True, strict=False):
 		if version is None:
 			version = self.version
 
-		if version not in [5,6]:
-			raise ValueError("Invalid model version: %d - must be 5 or 6" % version)
+		if version not in Model.supported_versions:
+			raise ValueError("Invalid model version: %d - must be in %s" % (version, repr(Model.supported_versions)))
+
+		vert_count = vert_offsets[len(vert_offsets) - 1]
+
+		if strict:
+			assert(len(self.materials < 256))
+			assert(len(self.objects < 256))
+			assert(len(self.materials < 256))
+			if version < 7:
+				assert(vert_count <= 0xFFFF)
 
 		file = open(path, "w")
 		file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
@@ -594,17 +616,18 @@ class Model(object):
 			prev_index = len(vert_offsets) - 1
 			vert_offsets.append(vert_offsets[prev_index] + len(mesh.verts))
 
-		file.write("NUMVERTS %d\n" % vert_offsets[len(vert_offsets) - 1])
+		vert_tok_suffix = "32" if version == 7 and vert_count > 0xFFFF else ""
+		file.write("NUMVERTS%s %d\n" % (vert_tok_suffix, vert_count))
 		for mesh_index, mesh in enumerate(self.meshes):
 			for vert_index, vert in enumerate(mesh.verts):
-				vert.save(file, vert_index + vert_offsets[mesh_index])
+				vert.save(file, vert_index + vert_offsets[mesh_index], vert_tok_suffix=vert_tok_suffix)
 
 		# Faces
 		face_count = sum([len(mesh.faces) for mesh in self.meshes])
 		file.write("NUMFACES %d\n" % face_count)
 		for mesh_index, mesh in enumerate(self.meshes):
 			for face in mesh.faces:
-				face.save(file, version, vert_offsets[mesh_index])
+				face.save(file, version, vert_offsets[mesh_index], vert_tok_suffix=vert_tok_suffix)
 
 		# Meshes
 		file.write("NUMOBJECTS %d\n" % len(self.meshes))
@@ -618,4 +641,3 @@ class Model(object):
 			material.save(file, version, material_index, extended_features=extended_features)
 
 		file.close()
-
