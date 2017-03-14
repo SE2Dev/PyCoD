@@ -1,17 +1,24 @@
-from itertools import islice
 from time import strftime
-from os.path import dirname, basename, splitext
+import os
 
-# NT_EXPORT
+'''
+	-------------------
+	---< NT_EXPORT >---
+	-------------------
+'''
+
 
 class Note(object):
-	__slots__=('frame', 'string')
+	__slots__ = ('frame', 'string')
+
 	def __init__(self, frame, string=""):
 		self.frame = frame
 		self.string = string
 
+
 class NoteTrack(object):
-	__slots__=('notes', 'frame_count', 'first_frame')
+	__slots__ = ('notes', 'frame_count', 'first_frame')
+
 	def __init__(self, path=None):
 		if(path is None):
 			self.notes = []
@@ -34,10 +41,12 @@ class NoteTrack(object):
 				self.frame_count = int(line_split[1])
 			elif line_split[0] == "NUMKEYS":
 				note_count = int(line_split[1])
+				if note_count == 0:
+					break
 			elif line_split[0] == "FRAME":
 				note = Note(int(line_split[1]), line_split[2][1:-1])
 				self.notes.append(note)
-		file.close()	
+		file.close()
 
 	def WriteFile(self, path):
 		file = open(path, "w")
@@ -63,31 +72,44 @@ class NoteTrack(object):
 	def NumKeys(self):
 		return len(self.notes)
 
-# XANIM_EXPORT
+
+'''
+	----------------------
+	---< XANIM_EXPORT >---
+	----------------------
+'''
+
 
 def __clamp_float__(value, range=(-1.0, 1.0)):
 	return max(min(value, range[1]), range[0])
 
+
 def __clamp_multi__(value, range=(-1.0, 1.0)):
 	return tuple([max(min(v, range[1]), range[0]) for v in value])
 
-# In the context of an XANIM_EXPORT file, a 'part' is essentially a bone
+
 class PartInfo(object):
-	__slots__=('name')
+	'''In the context of an XANIM_EXPORT file, a 'part' is essentially a bone'''
+	__slots__ = ('name')
+
 	def __init__(self, name):
 		self.name = name
 
+
 class FramePart(object):
-	__slots__=('offset', 'matrix')
+	__slots__ = ('offset', 'matrix')
+
 	def __init__(self, offset=None, matrix=None):
 		self.offset = offset
 		if matrix is None:
-			self.matrix = [(),(),()]
+			self.matrix = [(), (), ()]
 		else:
 			self.matrix = matrix
 
+
 class Frame(object):
-	__slots__=('frame', 'parts')
+	__slots__ = ('frame', 'parts')
+
 	def __init__(self, frame):
 		self.frame = frame
 		self.parts = []
@@ -115,7 +137,8 @@ class Frame(object):
 			if state == 0 and line_split[0] == "PART":
 				part_index = int(line_split[1])
 				if(part_index >= part_count):
-					raise ValueError("part_count does not index part_index -- %d not in [0, %d)" % (part_index, part_count))
+					fmt = "part_count does not index part_index -- %d not in [0, %d)"
+					raise ValueError(fmt % (part_index, part_count))
 				state = 1
 			elif state == 1 and line_split[0] == "OFFSET":
 				offset = (float(line_split[1]), float(line_split[2]), float(line_split[3]))
@@ -146,8 +169,10 @@ class Frame(object):
 			lines_read += self.__load_part__(file, part_count)
 		return lines_read
 
+
 class XAnim_Export(object):
-	__slots__=('version', 'framerate', 'parts', 'frames', 'notes')
+	__slots__ = ('version', 'framerate', 'parts', 'frames', 'notes')
+
 	def __init__(self, path=None):
 		if(path is None):
 			self.version = None
@@ -158,7 +183,6 @@ class XAnim_Export(object):
 		else:
 			self.LoadFile(path)
 
-	
 	def __load_header__(self, file):
 		lines_read = 0
 		is_anim = False
@@ -171,7 +195,7 @@ class XAnim_Export(object):
 
 			if line_split[0] == "ANIMATION":
 				is_anim = True
-			elif is_anim == True and line_split[0] == "VERSION":
+			elif is_anim is True and line_split[0] == "VERSION":
 				self.version = int(line_split[1])
 				return lines_read
 
@@ -217,21 +241,22 @@ class XAnim_Export(object):
 				self.framerate = float(line_split[1])
 			elif line_split[0] == "NUMFRAMES":
 				frame_count = int(line_split[1])
-				self.frames = [None]*frame_count
+				self.frames = [None] * frame_count
 			elif line_split[0] == "FRAME":
 				# TODO: Check if the format supports non-int frames
 				frame_number = int(line_split[1])
 
-				#  Don't enable this until anims that don't start on frame 0 are sorted out
-				#if frame_number >= frame_count:
-				#	raise ValueError("frame_count does not index frame_number -- %d not in [0, %d)" % (frame_number, frame_count))
-				
+				# Don't enable this until anims that don't start on frame 0 are sorted out
+				# if frame_number >= frame_count:
+				#   fmt = "frame_count does not index frame_number -- %d not in [0, %d)"
+				#   raise ValueError(fmt % (frame_number, frame_count))
+
 				lines_read += self.__load_frame__(file, frame_index, frame_number)
 				frame_index += 1
 
 				if frame_index == frame_count:
 					return lines_read
-		
+
 		return lines_read
 
 	def __load_frame__(self, file, frame_index, frame_number):
@@ -240,7 +265,7 @@ class XAnim_Export(object):
 		self.frames[frame_index] = frame
 		return lines_read
 
-	def __load_notes__(self, file):
+	def __load_notes__(self, file, use_notetrack_file=True):
 		lines_read = 0
 		note_count = 0
 		note_index = 0
@@ -271,21 +296,39 @@ class XAnim_Export(object):
 					note_index = 0
 					note_count = 0
 					state = 0
-					
-			"""
-			TODO: Add notetrack read support - implicitly handle both WAW and BO1 styles
-				The embedded notetrack format appears to be somewhat inconsistent between WaW and BO1
-				This needs to be addressed
-			"""
+
+		# Automatically load the matching NT_EXPORT file if requested
+		if use_notetrack_file:
+			def find_notetrack_file(anim_filepath):
+				notetrack_basepath = os.path.splitext(anim_filepath)[0]
+				for ext in ['.NT_EXPORT', '.nt_export']:
+					path = notetrack_basepath + ext
+					if os.path.exists(path):
+						return path
+				return None
+
+			filepath = os.path.realpath(file.name)
+			notetrack_filepath = find_notetrack_file(filepath)
+			if notetrack_filepath is not None:
+				nt = NoteTrack(notetrack_filepath)
+				first_frame = min([f.frame for f in self.frames])
+				frame_count = len(self.frames)
+				if nt.frame_count != frame_count or nt.first_frame != first_frame:
+					args = (os.path.basename(notetrack_filepath), os.path.basename(filepath))
+					print("Notetrack file '%s' doesn't match anim '%s' - skipping..." % args)
+					return lines_read
+				else:
+					self.notes.extend(nt.notes)
+
 		return lines_read
 
-	def LoadFile(self, path):
+	def LoadFile(self, path, use_notetrack_file=False):
 		file = open(path, "r")
 		# file automatically keeps track of what line its on across calls
 		self.__load_header__(file)
 		self.__load_part_info__(file)
 		self.__load_frames__(file)
-		self.__load_notes__(file)
+		self.__load_notes__(file, use_notetrack_file)
 		file.close()
 
 	# Write an XANIM_EXPORT file
@@ -298,7 +341,9 @@ class XAnim_Export(object):
 			last_frame = max([frame.frame for frame in self.frames]) + 1
 
 		if last_frame - first_frame != len(self.frames):
-			raise ValueError("The keyed frame count and number of frames do not match (%d != %d)" % (last_frame - first_frame, len(self.frames)))
+			fmt = "The keyed frame count and number of frames do not match (%d != %d)"
+			err = (	fmt % (last_frame - first_frame, len(self.frames)))
+			raise ValueError(err)
 
 		file = open(path, "w")
 		file.write(header_message)
@@ -306,7 +351,7 @@ class XAnim_Export(object):
 
 		file.write("ANIMATION\n")
 		file.write("VERSION %d\n\n" % self.version)
-	
+
 		file.write("NUMPARTS %d\n" % len(self.parts))
 		for part_index, part in enumerate(self.parts):
 			file.write("PART %d \"%s\"\n" % (part_index, part.name))
@@ -319,19 +364,25 @@ class XAnim_Export(object):
 			for part_index, part in enumerate(frame.parts):
 				file.write("PART %d\n" % part_index)
 				# TODO: Investigate precision options
-				file.write("OFFSET %f %f %f\n" % (part.offset[0], part.offset[1], part.offset[2]))
+				offset = (part.offset[0], part.offset[1], part.offset[2])
+				file.write("OFFSET %f %f %f\n" % offset)
 				file.write("X %f %f %f\n" % __clamp_multi__(part.matrix[0]))
 				file.write("Y %f %f %f\n" % __clamp_multi__(part.matrix[1]))
 				file.write("Z %f %f %f\n\n" % __clamp_multi__(part.matrix[2]))
 
-		# NOTE: Despite having the same version number, BO1 supports the NUMKEYS style embedded notetracks
-		#  While WAW doesn't, so in order to support both we'll use the WAW way since both games support it
+		# NOTE: Despite having the same version number
+		#   BO1 supports the NUMKEYS style embedded notetracks
+		#   while WAW doesn't, so in order to support both,
+		#   we'll use the WAW way since both games support it
+
 		# TODO: Verify how notetracks work across versions (Specifically for CoD2)
-		# TODO: Support for NT_EXPORT file generation - and automatically formatting the XANIM_EXPORT to correspond to this
+
+		# TODO: Support for NT_EXPORT file generation
+		#   and automatically formatting the XANIM_EXPORT to correspond to this
 
 		# WAW Style
 		file.write("NOTETRACKS\n\n")
-		if embed_notes == True:
+		if embed_notes is True:
 			for part_index, part in enumerate(self.parts):
 				file.write("PART %d\n" % part_index)
 				track_count = 0 if part_index != 0 else (1 if len(self.notes) != 0 else 0)
@@ -342,23 +393,23 @@ class XAnim_Export(object):
 					for note in self.notes:
 						file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
 					file.write("\n")
-		
+
 		# Write a NT_EXPORT file
 		else:
 			notetrack = NoteTrack()
 			notetrack.notes = self.notes
 			notetrack.first_frame = first_frame
 			notetrack.frame_count = last_frame - first_frame
-			
-			_dir = dirname(path)
-			_file = splitext(basename(path))[0]
+
+			_dir = os.path.dirname(path)
+			_file = os.path.splitext(os.path.basename(path))[0]
 
 			notetrack.WriteFile("%s/%s.NT_EXPORT" % (_dir, _file))
 
 		# BO1 Style (Just here for reference)
-		#file.write("NUMKEYS %d\n" % len(self.notes))
-		#	for note in self.notes:
-		#		file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
-		#	file.write("\n")
+		# file.write("NUMKEYS %d\n" % len(self.notes))
+		# for note in self.notes:
+		#   file.write("FRAME %d \"%s\"\n" % (note.frame, note.string))
+		# file.write("\n")
 
 		file.close()
