@@ -177,7 +177,7 @@ class Frame(object):
         return lines_read
 
 
-class XAnim_Export(object):
+class Anim(object):
     __slots__ = ('version', 'framerate', 'parts', 'frames', 'notes')
 
     def __init__(self, path=None):
