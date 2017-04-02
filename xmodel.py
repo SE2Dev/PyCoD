@@ -1,5 +1,6 @@
 from itertools import repeat
 from time import strftime
+from math import sqrt
 
 
 def __clamp_float__(value, range=(-1.0, 1.0)):
@@ -8,6 +9,11 @@ def __clamp_float__(value, range=(-1.0, 1.0)):
 
 def __clamp_multi__(value, range=(-1.0, 1.0)):
     return tuple([max(min(v, range[1]), range[0]) for v in value])
+
+
+def __normalized__(iterable):
+    d = 1.0 / sqrt(sum([v * v for v in iterable]))
+    return [v * d for v in iterable]
 
 
 def deserialize_image_string(ref_string):
@@ -599,6 +605,14 @@ class Model(object):
                 material.phong = float(line_split[1])
 
         return lines_read
+
+    def normalize_weights(self):
+        """
+        Normalize the bone weights for all verts (in all meshes)
+        """
+        for mesh in self.meshes:
+            for vert in mesh.verts:
+                vert.weights = __normalized__(vert.weights)
 
     def LoadFile(self, path, split_meshes=True):
         file = open(path, "r")
