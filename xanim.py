@@ -1,6 +1,10 @@
 from time import strftime
 import os
 
+# Can be int or float
+#  Changes the internal type for frames indices
+FRAME_TYPE = float
+
 '''
     -------------------
     ---< NT_EXPORT >---
@@ -44,7 +48,7 @@ class NoteTrack(object):
                 if note_count == 0:
                     break
             elif line_split[0] == "FRAME":
-                note = Note(int(line_split[1]), line_split[2][1:-1])
+                note = Note(FRAME_TYPE(line_split[1]), line_split[2][1:-1])
                 self.notes.append(note)
         file.close()
 
@@ -87,6 +91,10 @@ def __clamp_float__(value, range=(-1.0, 1.0)):
 
 def __clamp_multi__(value, range=(-1.0, 1.0)):
     return tuple([max(min(v, range[1]), range[0]) for v in value])
+
+
+def __clean_float2str__(value):
+    return ('%f' % value).rstrip('0').rstrip('.')
 
 
 class PartInfo(object):
@@ -244,14 +252,12 @@ class Anim(object):
                 continue
 
             if line_split[0] == "FRAMERATE":
-                # TODO: Check if the format even supports non-int framerates
                 self.framerate = float(line_split[1])
             elif line_split[0] == "NUMFRAMES":
                 frame_count = int(line_split[1])
                 self.frames = [None] * frame_count
             elif line_split[0] == "FRAME":
-                # TODO: Check if the format supports non-int frames
-                frame_number = int(line_split[1])
+                frame_number = FRAME_TYPE(line_split[1])
 
                 # Don't enable this until anims that don't start on frame 0 are
                 #  sorted out
@@ -297,7 +303,7 @@ class Anim(object):
                 if note_count != 0:
                     state = 1
             elif state == 1 and line_split[0] == "FRAME":
-                frame = int(line_split[1])
+                frame = FRAME_TYPE(line_split[1])
                 string = line_split[2][1:-1]
                 note = Note(frame, string)
                 self.notes.append(note)
@@ -372,13 +378,13 @@ class Anim(object):
             file.write("PART %d \"%s\"\n" % (part_index, part.name))
         file.write("\n")
 
-        file.write("FRAMERATE %d\n" % self.framerate)
+        file.write("FRAMERATE %s\n" % __clean_float2str__(self.framerate))
         file.write("NUMFRAMES %d\n" % len(self.frames))
         for frame in self.frames:
-            file.write("FRAME %d\n" % frame.frame)
+            file.write("FRAME %s\n" % __clean_float2str__(frame.frame))
             for part_index, part in enumerate(frame.parts):
                 file.write("PART %d\n" % part_index)
-                # TODO: Investigate precision options
+                # Investigate precision options?
                 offset = (part.offset[0], part.offset[1], part.offset[2])
                 file.write("OFFSET %f %f %f\n" % offset)
                 file.write("X %f %f %f\n" % __clamp_multi__(part.matrix[0]))
@@ -392,9 +398,6 @@ class Anim(object):
 
         # TODO: Verify how notetracks work across versions
         #  (Specifically for CoD2)
-
-        # TODO: Support for NT_EXPORT file generation
-        #   and automatically formatting the XANIM_EXPORT to correspond to this
 
         # WAW Style
         file.write("NOTETRACKS\n\n")
