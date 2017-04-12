@@ -123,8 +123,8 @@ class XBlock(object):
     @staticmethod
     def LoadShortVec3Block(file):
         data = file.read(6)
-        result = struct.unpack('hhh', data)
-        return [scalar / 32767.0 for scalar in result]
+        x, y, z = struct.unpack('hhh', data)
+        return (x / 32767.0, y / 32767.0, z / 32767.0)
 
     @staticmethod
     def LoadVec4Block(file):
@@ -151,8 +151,8 @@ class XBlock(object):
     def LoadColorBlock(file):
         file.seek(file.tell() + 2)
         data = file.read(4)
-        result = struct.unpack('BBBB', data)
-        return tuple([color / 255.0 for color in result])
+        r, g, b, a = struct.unpack('BBBB', data)
+        return (r / 255.0, g / 255.0, b / 255.0, a / 255.0)
 
     @staticmethod
     def LoadUVBlock(file):
