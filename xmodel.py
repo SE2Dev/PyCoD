@@ -2,6 +2,8 @@ from itertools import repeat
 from time import strftime
 from math import sqrt
 
+from .xbin import XBinIO
+
 
 def __clamp_float__(value, range=(-1.0, 1.0)):
     return max(min(value, range[1]), range[0])
@@ -9,6 +11,18 @@ def __clamp_float__(value, range=(-1.0, 1.0)):
 
 def __clamp_multi__(value, range=(-1.0, 1.0)):
     return tuple([max(min(v, range[1]), range[0]) for v in value])
+
+# Black Ops Note
+#  NORMAL 0.0 0.0 0.000000000000000000001 <works fine>
+#  NORMAL 0.0 0.0 0.0000000000000000000001 <assert>
+#  NORMAL 0.0 0.0 0.00000000000000000000001 <Vertex normal = 0 error>
+
+
+def __clamp_normal__(value):
+    value = __clamp_multi__(value)
+    if sum([abs(v) for v in value]) == 0:
+        return (0.0, 0.0, 1.0)
+    return value
 
 
 def __normalized__(iterable):
@@ -61,13 +75,14 @@ def serialize_image_string(image_dict, extended_features=True):
 
 
 class Bone(object):
-    __slots__ = ('name', 'parent', 'offset', 'matrix')
+    __slots__ = ('name', 'parent', 'offset', 'matrix', 'scale')
 
     def __init__(self, name, parent=-1):
         self.name = name
         self.parent = parent
         self.offset = None
         self.matrix = [None] * 3
+        self.scale = (1.0, 1.0, 1.0)
 
 
 class Vertex(object):
@@ -147,13 +162,13 @@ class FaceVertex(object):
 
     def save(self, file, version, index_offset, vert_tok_suffix=""):
         vert_id = self.vertex + index_offset
+        normal = __clamp_normal__(self.normal)
         if version == 5:
-            normal = __clamp_multi__(self.normal)
             file.write("VERT %d %f %f %f %f %f\n" %
                        ((vert_id,) + normal + self.uv))
         else:
             file.write("VERT%s %d\n" % (vert_tok_suffix, vert_id))
-            file.write("NORMAL %f %f %f\n" % __clamp_multi__(self.normal))
+            file.write("NORMAL %f %f %f\n" % normal)
             file.write("COLOR %f %f %f %f\n" % self.color)
             file.write("UV 1 %f %f\n\n" % self.uv)
 
@@ -364,11 +379,11 @@ class Mesh(object):
         return lines_read
 
 
-class Model(object):
-    __slots__ = ('name', 'version', 'bones', 'meshes', 'materials')
+class Model(XBinIO, object):
+    __slots__ = ('version', 'name', 'bones', 'meshes', 'materials')
     supported_versions = [5, 6, 7]
 
-    def __init__(self, name):
+    def __init__(self, name='$model'):
         self.name = name
         self.version = -1
 
@@ -614,7 +629,7 @@ class Model(object):
             for vert in mesh.verts:
                 vert.weights = __normalized__(vert.weights)
 
-    def LoadFile(self, path, split_meshes=True):
+    def LoadFile_Raw(self, path, split_meshes=True):
         file = open(path, "r")
         # file automatically keeps track of what line its on across calls
         self.__load_header__(file)
@@ -638,8 +653,10 @@ class Model(object):
         file.close()
 
     # Write an xmodel_export file, by default it uses the objects self.version
-    def WriteFile(self, path, version=None, extended_features=True,
-                  strict=False):
+    def WriteFile_Raw(self, path, version=None,
+                      header_message="",
+                      extended_features=True,
+                      strict=False):
         if version is None:
             version = self.version
 
@@ -665,6 +682,9 @@ class Model(object):
 
         file = open(path, "w")
         file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
+
+        if header_message != '':
+            file.write(header_message)
 
         file.write("MODEL\n")
         file.write("VERSION %d\n\n" % version)
@@ -716,3 +736,46 @@ class Model(object):
                           extended_features=extended_features)
 
         file.close()
+
+    @staticmethod
+    def FromFile_Raw(filepath, split_meshes=True):
+        '''
+        Load from an XMODEL_EXPORT file and return the resulting Model()
+        '''
+        model = Model()
+        model.LoadFile_Raw(filepath, split_meshes)
+        return model
+
+    def LoadFile_Bin(self, path, split_meshes=True,
+                     is_compressed=True, dump=False):
+        file = open(path, "rb")
+
+        if is_compressed:
+            file = XBinIO.__decompress_internal__(file, dump)
+
+        default_mesh = self.__xbin_loadfile_internal__(file, 'MODEL')
+
+        if split_meshes:
+            self.__generate_meshes__(default_mesh)
+        else:
+            self.meshes = [default_mesh]
+        file.close()
+
+    def WriteFile_Bin(self, path, version=None,
+                      extended_features=True, header_message=""):
+        if version is None:
+            version = self.version
+        return self.__xbin_writefile_model_internal__(path,
+                                                      version,
+                                                      extended_features,
+                                                      header_message)
+
+    @staticmethod
+    def FromFile_Bin(filepath, split_meshes=True,
+                     is_compressed=True, dump=False):
+        '''
+        Load from an XMODEL_BIN file and return the resulting Model()
+        '''
+        model = Model()
+        model.LoadFile_Bin(filepath, split_meshes, is_compressed, dump)
+        return model

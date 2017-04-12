@@ -1,6 +1,8 @@
 from time import strftime
 import os
 
+from .xbin import XBinIO
+
 # Can be int or float
 #  Changes the internal type for frames indices
 FRAME_TYPE = float
@@ -23,18 +25,15 @@ class Note(object):
 class NoteTrack(object):
     __slots__ = ('notes', 'frame_count', 'first_frame')
 
-    def __init__(self, path=None):
-        if(path is None):
-            self.notes = []
-            self.frame_count = None
-        else:
-            self.LoadFile(path)
+    def __init__(self):
+        self.notes = []
+        self.frame_count = None
 
-    def LoadFile(self, path):
+    def LoadFile_Raw(self, filepath):
         self.notes = []
         self.first_frame = None
         self.frame_count = None
-        file = open(path, "r")
+        file = open(filepath, "r")
         for line in file:
             note_count = 0
 
@@ -52,8 +51,17 @@ class NoteTrack(object):
                 self.notes.append(note)
         file.close()
 
-    def WriteFile(self, path):
-        file = open(path, "w")
+    @staticmethod
+    def FromFile_Raw(filepath):
+        '''
+        Load from an NT_EXPORT file and return the resulting NoteTrack()
+        '''
+        notetrack = NoteTrack()
+        notetrack.LoadFile_Raw(filepath)
+        return notetrack
+
+    def WriteFile_Raw(self, filepath):
+        file = open(filepath, "w")
         file.write("FIRSTFRAME %d\n" % self.first_frame)
         file.write("NUMFRAMES %d\n" % self.frame_count)
         file.write("NUMKEYS %d\n" % len(self.notes))
@@ -185,18 +193,15 @@ class Frame(object):
         return lines_read
 
 
-class Anim(object):
+class Anim(XBinIO, object):
     __slots__ = ('version', 'framerate', 'parts', 'frames', 'notes')
 
-    def __init__(self, path=None):
-        if(path is None):
-            self.version = None
-            self.framerate = None
-            self.parts = []
-            self.frames = []
-            self.notes = []
-        else:
-            self.LoadFile(path)
+    def __init__(self):
+        self.version = None
+        self.framerate = None
+        self.parts = []
+        self.frames = []
+        self.notes = []
 
     def __load_header__(self, file):
         lines_read = 0
@@ -326,7 +331,7 @@ class Anim(object):
             filepath = os.path.realpath(file.name)
             notetrack_filepath = find_notetrack_file(filepath)
             if notetrack_filepath is not None:
-                nt = NoteTrack(notetrack_filepath)
+                nt = NoteTrack.FromFile_Raw(notetrack_filepath)
                 first_frame = min([f.frame for f in self.frames])
                 frame_count = len(self.frames)
                 if nt.frame_count != frame_count or (
@@ -342,7 +347,7 @@ class Anim(object):
 
         return lines_read
 
-    def LoadFile(self, path, use_notetrack_file=False):
+    def LoadFile_Raw(self, path, use_notetrack_file=False):
         file = open(path, "r")
         # file automatically keeps track of what line its on across calls
         self.__load_header__(file)
@@ -353,7 +358,8 @@ class Anim(object):
 
     # Write an XANIM_EXPORT file
     # if embed_notes is False, a NT_EXPORT file will be created
-    def WriteFile(self, path, header_message="", embed_notes=True):
+    def WriteFile_Raw(self, path, version=3,
+                      header_message="", embed_notes=True):
         first_frame = 0
         last_frame = 0
         if len(self.frames) != 0:
@@ -369,6 +375,10 @@ class Anim(object):
         file = open(path, "w")
         file.write(header_message)
         file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
+
+        # If there is no current version, fallback to the argument
+        if self.version is None:
+            self.version = version
 
         file.write("ANIMATION\n")
         file.write("VERSION %d\n\n" % self.version)
@@ -425,7 +435,7 @@ class Anim(object):
             _dir = os.path.dirname(path)
             _file = os.path.splitext(os.path.basename(path))[0]
 
-            notetrack.WriteFile("%s/%s.NT_EXPORT" % (_dir, _file))
+            notetrack.WriteFile_Raw("%s/%s.NT_EXPORT" % (_dir, _file))
 
         # BO1 Style (Just here for reference)
         # file.write("NUMKEYS %d\n" % len(self.notes))
@@ -434,3 +444,38 @@ class Anim(object):
         # file.write("\n")
 
         file.close()
+
+    @staticmethod
+    def FromFile_Raw(filepath):
+        '''
+        Load from an XANIM_EXPORT file and return the resulting Anim()
+        '''
+        anim = Anim()
+        anim.LoadFile_Raw(filepath)
+        return anim
+
+    def LoadFile_Bin(self, path, is_compressed=True, dump=False):
+        file = open(path, "rb")
+
+        if is_compressed:
+            file = XBinIO.__decompress_internal__(file, dump)
+
+        self.__xbin_loadfile_internal__(file, 'ANIM')
+        file.close()
+
+    def WriteFile_Bin(self, path, version=3, header_message=""):
+        # If there is no current version, fallback to the argument
+        if self.version is None:
+            self.version = version
+        return self.__xbin_writefile_anim_internal__(path,
+                                                     self.version,
+                                                     header_message)
+
+    @staticmethod
+    def FromFile_Bin(filepath, is_compressed=True, dump=False):
+        '''
+        Load from a XANIM_BIN file and return the resulting Anim()
+        '''
+        anim = Anim()
+        anim.LoadFile_Bin(filepath, is_compressed, dump)
+        return anim
