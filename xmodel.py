@@ -2,6 +2,8 @@ from itertools import repeat
 from time import strftime
 from math import sqrt
 
+import re
+
 from .xbin import XBinIO
 
 
@@ -35,20 +37,9 @@ def deserialize_image_string(ref_string):
         return {"color": "$none.tga"}
 
     out = {}
-    refs = ref_string.split()
-    for ref in refs:
-        if ':' not in ref:
-            continue
-        kv = ref.split(':')
-        c = len(kv)
-        if c > 2 or c < 1:
-            continue
-        elif c == 1:
-            key, value = (kv[0], "")
-        elif c == 2:
-            key, value = kv
-
+    for key, value in re.findall('\s*(\S+?)\s*:\s*(\S+)\s*', ref_string):
         out[key.lower()] = value.lstrip()
+
     if len(out) == 0:
         out = {"color": ref_string}
     return out
