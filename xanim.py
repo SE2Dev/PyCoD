@@ -47,7 +47,8 @@ class NoteTrack(object):
                 if note_count == 0:
                     break
             elif line_split[0] == "FRAME":
-                note = Note(FRAME_TYPE(line_split[1]), line_split[2][1:-1])
+                note = Note(FRAME_TYPE(line_split[1]),
+                            line_split[2].strip('"'))
                 self.notes.append(note)
         file.close()
 
@@ -237,7 +238,7 @@ class Anim(XBinIO, object):
                 self.parts = [PartInfo(None)] * part_count
             elif line_split[0] == "PART":
                 index = int(line_split[1])
-                self.parts[index] = PartInfo(line_split[2][1:-1])
+                self.parts[index] = PartInfo(line_split[2].strip('"'))
                 parts_read += 1
                 if parts_read == part_count:
                     return lines_read
@@ -309,7 +310,7 @@ class Anim(XBinIO, object):
                     state = 1
             elif state == 1 and line_split[0] == "FRAME":
                 frame = FRAME_TYPE(line_split[1])
-                string = line_split[2][1:-1]
+                string = line_split[2].strip('"')
                 note = Note(frame, string)
                 self.notes.append(note)
 

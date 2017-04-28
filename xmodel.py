@@ -473,7 +473,7 @@ class Model(XBinIO, object):
             elif line_split[0] == "BONE":
                 index = int(line_split[1])
                 parent = int(line_split[2])
-                self.bones[index] = Bone(line_split[3][1:-1], parent)
+                self.bones[index] = Bone(line_split[3].strip('"'), parent)
                 bones_read += 1
                 if bones_read == bone_count:
                     break
@@ -499,7 +499,7 @@ class Model(XBinIO, object):
                 self.meshes = [None] * mesh_count
             elif line_split[0] == "OBJECT":
                 index = int(line_split[1])
-                self.meshes[index] = Mesh(line_split[2][1:-1])
+                self.meshes[index] = Mesh(line_split[2].strip('"'))
                 meshes_read += 1
                 if meshes_read == mesh_count:
                     return lines_read
@@ -566,9 +566,9 @@ class Model(XBinIO, object):
                 self.materials = [None] * material_count
             elif line_split[0] == "MATERIAL":
                 index = int(line_split[1])
-                name = line_split[2][1:-1]
-                material_type = line_split[3][1:-1]
-                images = deserialize_image_string(line_split[4].rstrip('"'))
+                name = line_split[2].strip('"')
+                material_type = line_split[3].strip('"')
+                images = deserialize_image_string(line_split[4].strip('"'))
                 material = Material(name, material_type, images)
                 self.materials[index] = Material(name, material_type, images)
                 material = self.materials[index]
