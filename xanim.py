@@ -161,24 +161,28 @@ class Frame(object):
                     raise ValueError(fmt % (part_index, part_count))
                 state = 1
             elif state == 1 and line_split[0] == "OFFSET":
-                offset = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                offset = (float(line_split[1]),
+                          float(line_split[2]),
+                          float(line_split[3]))
                 self.parts[part_index] = FramePart(offset)
                 part = self.parts[part_index]
                 state = 2
             elif state == 2 and line_split[0] == "X":
-                x = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                x = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 part.matrix[0] = x
                 state = 3
             elif state == 3 and line_split[0] == "Y":
-                y = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                y = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 part.matrix[1] = y
                 state = 4
             elif state == 4 and line_split[0] == "Z":
-                z = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                z = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 part.matrix[2] = z
                 state = -1
                 return lines_read

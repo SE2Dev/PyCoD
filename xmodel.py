@@ -216,12 +216,15 @@ class Face(object):
                     state = 2
 
             elif state == 2 and line_split[0] == "NORMAL":
-                vert.normal = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                vert.normal = (float(line_split[1]),
+                               float(line_split[2]),
+                               float(line_split[3]))
                 state = 3
             elif state == 3 and line_split[0] == "COLOR":
-                vert.color = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                vert.color = (float(line_split[1]),
+                              float(line_split[2]),
+                              float(line_split[3]),
+                              float(line_split[4]))
                 state = 4
             elif state == 4 and line_split[0] == "UV":
                 vert.uv = (float(line_split[2]), float(line_split[3]))
@@ -433,23 +436,27 @@ class Model(XBinIO, object):
                 state = 1
             elif state == 1 and line_split[0] == "OFFSET":
                 bone = self.bones[bone_index]
-                bone.offset = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                bone.offset = (float(line_split[1]),
+                               float(line_split[2]),
+                               float(line_split[3]))
                 state = 2
             # SCALE ... is ignored as its always 1
             elif state == 2 and line_split[0] == "X":
-                x = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                x = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 bone.matrix[0] = x
                 state = 3
             elif state == 3 and line_split[0] == "Y":
-                y = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                y = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 bone.matrix[1] = y
                 state = 4
             elif state == 4 and line_split[0] == "Z":
-                z = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]))
+                z = (float(line_split[1]),
+                     float(line_split[2]),
+                     float(line_split[3]))
                 bone.matrix[2] = z
                 state = -1
                 return lines_read
@@ -578,30 +585,42 @@ class Model(XBinIO, object):
 
             # All of the properties below are only present in version 6
             elif line_split[0] == "COLOR":
-                material.color = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.color = (float(line_split[1]),
+                                  float(line_split[2]),
+                                  float(line_split[3]),
+                                  float(line_split[4]))
             elif line_split[0] == "TRANSPARENCY":
-                material.transparency = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.transparency = (float(line_split[1]),
+                                         float(line_split[2]),
+                                         float(line_split[3]),
+                                         float(line_split[4]))
             elif line_split[0] == "AMBIENTCOLOR":
-                material.color_ambient = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.color_ambient = (float(line_split[1]),
+                                          float(line_split[2]),
+                                          float(line_split[3]),
+                                          float(line_split[4]))
             elif line_split[0] == "INCANDESCENCE":
-                material.incandescence = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.incandescence = (float(line_split[1]),
+                                          float(line_split[2]),
+                                          float(line_split[3]),
+                                          float(line_split[4]))
             elif line_split[0] == "COEFFS":
                 material.coeffs = (float(line_split[1]), float(line_split[2]))
             elif line_split[0] == "GLOW":
                 material.glow = (float(line_split[1]), int(line_split[2]))
             elif line_split[0] == "REFRACTIVE":
-                material.refractive = (
-                    int(line_split[1]), float(line_split[2]))
+                material.refractive = (int(line_split[1]),
+                                       float(line_split[2]))
             elif line_split[0] == "SPECULARCOLOR":
-                material.color_specular = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.color_specular = (float(line_split[1]),
+                                           float(line_split[2]),
+                                           float(line_split[3]),
+                                           float(line_split[4]))
             elif line_split[0] == "REFLECTIVECOLOR":
-                material.color_reflective = (float(line_split[1]), float(
-                    line_split[2]), float(line_split[3]), float(line_split[4]))
+                material.color_reflective = (float(line_split[1]),
+                                             float(line_split[2]),
+                                             float(line_split[3]),
+                                             float(line_split[4]))
             elif line_split[0] == "REFLECTIVE":
                 material.reflective = (
                     int(line_split[1]), float(line_split[2]))
