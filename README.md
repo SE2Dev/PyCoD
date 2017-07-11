@@ -5,5 +5,5 @@ These modules are provided to make developing plugins for modeling and animation
 
 
 There are currently two available plugins that utilize PyCod:
-- Blender: [Blender-Cod](#)
+- Blender: [Blender-CoD](https://github.com/CoDEmanX/blender-cod)
 - Autodesk Maya: [CODTools](https://github.com/dtzxporter/CODTools)
