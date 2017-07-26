@@ -4,7 +4,7 @@ from math import sqrt
 
 import re
 
-from .xbin import XBinIO
+from .xbin import XBinIO, validate_version
 
 
 def __clamp_float__(value, range=(-1.0, 1.0)):
@@ -667,10 +667,9 @@ class Model(XBinIO, object):
                       header_message="",
                       extended_features=True,
                       strict=False):
-        if version is None:
-            version = self.version
-
+        version = validate_version(self, version)
         if version not in Model.supported_versions:
+            self.version = None
             vargs = (version, repr(Model.supported_versions))
             raise ValueError(
                 "Invalid model version: %d - must be one of %s" % vargs)
@@ -773,8 +772,6 @@ class Model(XBinIO, object):
 
     def WriteFile_Bin(self, path, version=None,
                       extended_features=True, header_message=""):
-        if version is None:
-            version = self.version
         return self.__xbin_writefile_model_internal__(path,
                                                       version,
                                                       extended_features,

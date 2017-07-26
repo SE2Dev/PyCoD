@@ -21,6 +21,32 @@ def print_lz4_support_info(force=False):
         __LZ4_DISPLAY_SUPPORT_INFO__ = False
 
 
+def validate_version(self, version):
+    '''
+    Common method for validating the given version.
+        Also syncs the given object's version value with the given version
+    Arguments:
+        self - the target XModel or XAnim object
+        version - the given version value
+    Returns the version on success, or None on failure
+    '''
+
+    if version is None:
+        # If the user didn't specify a version, we attempt to use
+        #  whichever version the object already has (if it has one)
+        version = self.version
+
+    if version is not None:
+        # If we used the object's previously defined version, or the passed
+        # version value was actually defined, we ensure the new val is an int
+        version = int(version)
+
+    # Ensure that the object's version matches the new version id
+    self.version = version
+
+    return version
+
+
 def padded(size):
     return (size + 0x3) & 0xFFFFFFFFFFFFFC
 
@@ -773,10 +799,10 @@ class XBinIO(object):
 
         real_file = open(filepath, "wb")
         file = BytesIO()
-        version = 7
         if header_message != '':
             XBlock.WriteCommentBlock(file, header_message)
         XBlock.WriteModelBlock(file)
+        version = validate_version(self, version)
         XBlock.WriteVersionBlock(file, version)
 
         XBlock.WriteBoneCountBlock(file, len(model.bones))
@@ -862,7 +888,8 @@ class XBinIO(object):
         if header_message != '':
             XBlock.WriteCommentBlock(file, header_message)
         XBlock.WriteAnimBlock(file)
-        XBlock.WriteVersionBlock(file, 3)
+        version = validate_version(self, version)
+        XBlock.WriteVersionBlock(file, version)
         XBlock.WritePartCount(file, len(anim.parts))
 
         for part_index, part in enumerate(anim.parts):

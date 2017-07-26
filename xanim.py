@@ -1,7 +1,7 @@
 from time import strftime
 import os
 
-from .xbin import XBinIO
+from .xbin import XBinIO, validate_version
 
 # Can be int or float
 #  Changes the internal type for frames indices
@@ -382,8 +382,7 @@ class Anim(XBinIO, object):
         file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
 
         # If there is no current version, fallback to the argument
-        if self.version is None:
-            self.version = version
+        validate_version(self, version)
 
         file.write("ANIMATION\n")
         file.write("VERSION %d\n\n" % self.version)
@@ -469,11 +468,8 @@ class Anim(XBinIO, object):
         file.close()
 
     def WriteFile_Bin(self, path, version=3, header_message=""):
-        # If there is no current version, fallback to the argument
-        if self.version is None:
-            self.version = version
         return self.__xbin_writefile_anim_internal__(path,
-                                                     self.version,
+                                                     version,
                                                      header_message)
 
     @staticmethod
