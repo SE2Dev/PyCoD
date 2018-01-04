@@ -227,8 +227,7 @@ class XBlock(object):
         file.write(string + '\0')
         size = len(string) + 1
         pad = padded(size) - size
-        for i in range(pad):
-            file.write('\0')
+        file.write("\0" * pad)
 
     # Meta Generic
 
