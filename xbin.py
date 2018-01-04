@@ -908,8 +908,8 @@ class XBinIO(object):
                 XBlock.WriteOffsetBlock(file, part.offset)
                 XBlock.WriteMatrixBlock(file, part.matrix)
 
+        XBlock.WriteMetaInt16Block(file, 0x7A6C, len(anim.notes))
         if len(anim.notes):
-            XBlock.WriteMetaInt16Block(file, 0x7A6C, len(anim.notes))
             for note in anim.notes:
                 XBlock.WriteNoteFrame(file, note)
 
