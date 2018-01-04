@@ -71,11 +71,10 @@ class XBlock(object):
     @staticmethod
     def LoadString(file):
         bytes = b''
-        for i in range(1024):
-            b = file.read(1)
-            if b == b'\x00':
-                break
+        b = file.read(1)
+        while not b == b'\x00':
             bytes += b
+            b = file.read(1)
         return bytes.decode("utf-8")
 
     @staticmethod
