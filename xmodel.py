@@ -791,6 +791,8 @@ class Model(XBinIO, object):
 
     def WriteFile_Bin(self, path, version=None,
                       extended_features=True, header_message=""):
+        if version is None:
+            version = self.version
         return self.__xbin_writefile_model_internal__(path,
                                                       version,
                                                       extended_features,

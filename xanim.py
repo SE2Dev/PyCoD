@@ -482,8 +482,11 @@ class Anim(XBinIO, object):
         file.close()
 
     def WriteFile_Bin(self, path, version=3, header_message=""):
+        # If there is no current version, fallback to the argument
+        if self.version is None:
+            self.version = version
         return self.__xbin_writefile_anim_internal__(path,
-                                                     version,
+                                                     self.version,
                                                      header_message)
 
     @staticmethod
