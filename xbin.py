@@ -53,6 +53,10 @@ def padded(size):
     return (size + 0x3) & 0xFFFFFFFFFFFFFC
 
 
+def padding(size):
+    return 4 - size & 0x3
+
+
 def __clamp_float_to_short__(value, range=(-32768, 32767)):
     return max(min(int(value * range[1]), range[1]), range[0])
 
@@ -435,7 +439,7 @@ class XBlock(object):
                            0x1675, int(note.frame), string)
         end = file.tell() + len(data)
         file.write(data)
-        file.write("\0" * (padded(end) - end))
+        file.write(bytearray(0) * padding(end))
 
 
 class XBinIO(object):
