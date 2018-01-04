@@ -431,7 +431,9 @@ class XBlock(object):
         string = __str2bytes__(note.string)
         data = struct.pack('Hxxi%ds' % (len(string) + 1),
                            0x1675, int(note.frame), string)
+        end = file.tell() + len(data)
         file.write(data)
+        file.write("\0" * (padded(end) - end))
 
 
 class XBinIO(object):
