@@ -1,3 +1,5 @@
+# <pep8 compliant>
+
 from .xmodel import Model
 from .xanim import Anim
 from .sanim import SiegeAnim
