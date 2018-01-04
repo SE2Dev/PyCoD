@@ -677,7 +677,9 @@ class Model(XBinIO, object):
                       header_message="",
                       extended_features=True,
                       strict=False):
-        version = validate_version(self, version)
+        # If there is no current version, fallback to the argument
+        validate_version(self, version)
+
         if version not in Model.supported_versions:
             self.version = None
             vargs = (version, repr(Model.supported_versions))
@@ -803,8 +805,8 @@ class Model(XBinIO, object):
 
     def WriteFile_Bin(self, path, version=None,
                       extended_features=True, header_message=""):
-        if version is None:
-            version = self.version
+        # If there is no current version, fallback to the argument
+        validate_version(self, version)
         return self.__xbin_writefile_model_internal__(path,
                                                       version,
                                                       extended_features,
