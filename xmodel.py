@@ -713,15 +713,27 @@ class Model(XBinIO, object):
         file.write("NUMBONES %d\n" % len(self.bones))
 
         # NOTE: Cosmetic bones are only used by version 7 and later
+        bone_enum = None
         if version == 7:
             cosmetics = len([bone for bone in self.bones if bone.cosmetic])
-            self.cosmetics = cosmetics
             if cosmetics > 0:
                 file.write("NUMCOSMETICS %d\n" % cosmetics)
 
-        for bone_index, bone in enumerate(self.bones):
+                # Cosmetic bones MUST be written AFTER the standard bones in
+                #  the bone info list, so we need to generate a sorted list
+                #  of index/bone pairs
+                bone_enum = sorted(enumerate(self.bones),
+                                   key=lambda kvp: kvp[1].cosmetic)
+
+        # If no sorted enum is specified, we just the default bone enum
+        if bone_enum is None:
+            bone_enum = enumerate(self.bones)
+
+        # Write the actual bone info
+        for bone_index, bone in bone_enum:
             file.write("BONE %d %d \"%s\"\n" %
                        (bone_index, bone.parent, bone.name))
+
         file.write("\n")
 
         # Bone Transform Data
