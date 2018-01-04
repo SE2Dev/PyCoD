@@ -513,6 +513,8 @@ class XBinIO(object):
         state = LoadState()
         dummy_mesh = XModel.Mesh("$default")
 
+        cosmetic_count = 0
+
         def InitModel(file):
             XBlock.LoadInt16Block(file)
             state.asset_type = 'MODEL'
@@ -531,11 +533,11 @@ class XBinIO(object):
             self.bones = [None] * XBlock.LoadInt16Block(file)
 
         def LoadCosmeticCount(file):
-            self.cosmetics = XBlock.LoadInt32Block(file)
+            cosmetic_count = XBlock.LoadInt32Block(file)
 
         def LoadBoneInfo(file):
             index, parent, name = XBlock.LoadBoneBlock(file)
-            cosmetic = (index >= (len(self.bones) - self.cosmetics))
+            cosmetic = (index >= (len(self.bones) - cosmetic_count))
             self.bones[index] = XModel.Bone(name, parent, cosmetic)
 
         def LoadBoneIndex(file):

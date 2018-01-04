@@ -481,7 +481,6 @@ class Model(XBinIO, object):
             # TODO: Reordering these token checks may improve performance
             if line_split[0] == "NUMCOSMETICS":
                 cosmetic_count = int(line_split[1])
-                self.cosmetics = cosmetic_count
             elif line_split[0] == "NUMBONES":
                 bone_count = int(line_split[1])
                 self.bones = [Bone(None)] * bone_count
