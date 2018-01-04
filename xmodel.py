@@ -66,14 +66,15 @@ def serialize_image_string(image_dict, extended_features=True):
 
 
 class Bone(object):
-    __slots__ = ('name', 'parent', 'offset', 'matrix', 'scale')
+    __slots__ = ('name', 'parent', 'offset', 'matrix', 'scale', 'cosmetic')
 
-    def __init__(self, name, parent=-1):
+    def __init__(self, name, parent=-1, cosmetic=False):
         self.name = name
         self.parent = parent
         self.offset = None
         self.matrix = [None] * 3
         self.scale = (1.0, 1.0, 1.0)
+        self.cosmetic = cosmetic
 
 
 class Vertex(object):
@@ -467,6 +468,7 @@ class Model(XBinIO, object):
         lines_read = 0
         bone_count = 0
         bones_read = 0
+        cosmetic_count = 0
         for line in file:
             lines_read += 1
 
@@ -474,13 +476,19 @@ class Model(XBinIO, object):
             if len(line_split) == 0:
                 continue
 
-            if line_split[0] == "NUMBONES":
+            # TODO: Reordering these token checks may improve performance
+            if line_split[0] == "NUMCOSMETICS":
+                cosmetic_count = int(line_split[1])
+                self.cosmetics = cosmetic_count
+            elif line_split[0] == "NUMBONES":
                 bone_count = int(line_split[1])
                 self.bones = [Bone(None)] * bone_count
             elif line_split[0] == "BONE":
                 index = int(line_split[1])
                 parent = int(line_split[2])
-                self.bones[index] = Bone(line_split[3].strip('"'), parent)
+                cosmetic = (index >= (bone_count - cosmetic_count))
+                self.bones[index] = Bone(line_split[3].strip('"'),
+                                         parent, cosmetic)
                 bones_read += 1
                 if bones_read == bone_count:
                     break
@@ -683,6 +691,7 @@ class Model(XBinIO, object):
         vert_count = vert_offsets[len(vert_offsets) - 1]
 
         if strict:
+            # TODO: Add cosmetic hierarchy validation
             assert(len(self.materials < 256))
             assert(len(self.objects < 256))
             assert(len(self.materials < 256))
@@ -700,6 +709,14 @@ class Model(XBinIO, object):
 
         # Bone Hierarchy
         file.write("NUMBONES %d\n" % len(self.bones))
+
+        # NOTE: Cosmetic bones are only used by version 7 and later
+        if version == 7:
+            cosmetics = len([bone for bone in self.bones if bone.cosmetic])
+            self.cosmetics = cosmetics
+            if cosmetics > 0:
+                file.write("NUMCOSMETICS %d\n" % cosmetics)
+
         for bone_index, bone in enumerate(self.bones):
             file.write("BONE %d %d \"%s\"\n" %
                        (bone_index, bone.parent, bone.name))

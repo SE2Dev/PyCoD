@@ -329,6 +329,10 @@ class XBlock(object):
         file.write(data)
 
     @staticmethod
+    def WriteCosmeticInfoBlock(file, cosmetic_count):
+        XBlock.WriteMetaInt32Block(file, 0x7836, cosmetic_count)
+
+    @staticmethod
     def WriteBoneIndexBlock(file, index):
         XBlock.WriteMetaInt16Block(file, 0xDD9A, index)
 
@@ -518,9 +522,13 @@ class XBinIO(object):
         def LoadBoneCount(file):
             self.bones = [None] * XBlock.LoadInt16Block(file)
 
+        def LoadCosmeticCount(file):
+            self.cosmetics = XBlock.LoadInt32Block(file)
+
         def LoadBoneInfo(file):
             index, parent, name = XBlock.LoadBoneBlock(file)
-            self.bones[index] = XModel.Bone(name, parent)
+            cosmetic = (index >= (len(self.bones) - self.cosmetics))
+            self.bones[index] = XModel.Bone(name, parent, cosmetic)
 
         def LoadBoneIndex(file):
             index = XBlock.LoadInt16Block(file)
@@ -535,7 +543,7 @@ class XBinIO(object):
 
         def LoadBoneScale(file):
             data = XBlock.LoadVec3Block(file)
-            # state.active_bone.scale = data
+            state.active_thing.scale = data
 
         def LoadBoneMatrix(file):
             data = XBlock.LoadShortVec3Block(file)
@@ -698,7 +706,7 @@ class XBinIO(object):
 
             # Model Specific
             0x76BA: ("Bone count block", LoadBoneCount),
-            0x7836: ("Cosmetic bone count block", XBlock.LoadInt32Block),
+            0x7836: ("Cosmetic bone count block", LoadCosmeticCount),
             0xF099: ("Bone block", LoadBoneInfo),  # friggin porter
             0xDD9A: ("Bone index block", LoadBoneIndex),
             0x9383: ("Vert / Bone offset block", LoadOffset),
@@ -808,7 +816,15 @@ class XBinIO(object):
         version = validate_version(self, version)
         XBlock.WriteVersionBlock(file, version)
 
+        cosmetic_count = 0
+        for bone in model.bones:
+            if bone.cosmetic:
+                cosmetic_count = cosmetic_count + 1
+
         XBlock.WriteBoneCountBlock(file, len(model.bones))
+        if cosmetic_count > 0:
+            XBlock.WriteCosmeticInfoBlock(file, cosmetic_count)
+
         for bone_index, bone in enumerate(model.bones):
             XBlock.WriteBoneInfoBlock(file, bone_index, bone)
 
