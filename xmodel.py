@@ -1,3 +1,5 @@
+# <pep8 compliant>
+
 from itertools import repeat
 from time import strftime
 from math import sqrt

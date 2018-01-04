@@ -1,3 +1,5 @@
+# <pep8 compliant>
+
 import struct
 import os
 from io import BytesIO

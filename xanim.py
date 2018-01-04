@@ -1,3 +1,5 @@
+# <pep8 compliant>
+
 from time import strftime
 import os
 
@@ -170,8 +172,9 @@ class Frame(object):
                 part = self.parts[part_index]
                 state = 2
             elif state == 2 and line_split[0] == "SCALE":
-                # Scales are now deprecated and in some cases aren't required
-                #  so we reuse state 2 to do soft check for this block
+                # Scales are now deprecated and, in some cases
+                #  aren't actually required; so we reuse state 2
+                #  to do soft check for the SCALE block
                 scale = (float(line_split[1]),
                          float(line_split[2]),
                          float(line_split[3]))
