@@ -244,6 +244,11 @@ class XBlock(object):
         file.write(data)
 
     @staticmethod
+    def WriteMetaUInt16Block(file, _hash, value=0):
+        data = struct.pack('HH', _hash, value)
+        file.write(data)
+
+    @staticmethod
     def WriteMetaInt32Block(file, _hash, value=0):
         data = struct.pack('HxxI', _hash, value)
         file.write(data)
@@ -329,7 +334,7 @@ class XBlock(object):
 
     @staticmethod
     def WriteVertex16Count(file, vert_count):
-        XBlock.WriteMetaInt16Block(file, 0x950D, vert_count)
+        XBlock.WriteMetaUInt16Block(file, 0x950D, vert_count)
 
     @staticmethod
     def WriteVertex32Count(file, vert_count):
@@ -337,7 +342,7 @@ class XBlock(object):
 
     @staticmethod
     def WriteVertex16Index(file, vert_index):
-        XBlock.WriteMetaInt16Block(file, 0x8F03, vert_index)
+        XBlock.WriteMetaUInt16Block(file, 0x8F03, vert_index)
 
     @staticmethod
     def WriteVertex32Index(file, vert_index):
