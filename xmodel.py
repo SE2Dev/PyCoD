@@ -582,9 +582,16 @@ class Model(XBinIO, object):
                 self.materials = [None] * material_count
             elif line_split[0] == "MATERIAL":
                 index = int(line_split[1])
-                name = line_split[2].strip('"')
-                material_type = line_split[3].strip('"')
-                images = deserialize_image_string(line_split[4].strip('"'))
+                if version == 5:
+                    # Legacy XModel materials don't explicitly have a name
+                    #  field, so we simply auto-generate a name
+                    name = "Material_%d" % index
+                    material_type = "Lambert"
+                    images = deserialize_image_string(line_split[2].strip('"'))
+                else:
+                    name = line_split[2].strip('"')
+                    material_type = line_split[3].strip('"')
+                    images = deserialize_image_string(line_split[4].strip('"'))
                 material = Material(name, material_type, images)
                 self.materials[index] = Material(name, material_type, images)
                 material = self.materials[index]
