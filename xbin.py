@@ -129,7 +129,7 @@ class XBlock(object):
         start = file.tell() - 2
         file.seek(start + 4)
         data = file.read(4)
-        result = struct.unpack('f', data)
+        result = struct.unpack('f', data)[0]
         file.seek(start + padded(file.tell() - start))
         return result
 
