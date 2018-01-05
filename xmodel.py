@@ -696,8 +696,7 @@ class Model(XBinIO, object):
         if strict:
             # TODO: Add cosmetic hierarchy validation
             assert(len(self.materials < 256))
-            assert(len(self.objects < 256))
-            assert(len(self.materials < 256))
+            assert(len(self.meshes < 256))
             if version < 7:
                 assert(vert_count <= 0xFFFF)
 
