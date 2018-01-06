@@ -538,7 +538,6 @@ class XBinIO(object):
 
         def LoadVersion(file):
             self.version = XBlock.LoadInt16Block(file)
-            print(self.version)
 
         def LoadBoneCount(file):
             self.bones = [None] * XBlock.LoadInt16Block(file)
