@@ -46,6 +46,11 @@ def validate_version(self, version):
     # Ensure that the object's version matches the new version id
     self.version = version
 
+    # Raise an error if we were unable to figure out a proper version to use
+    if version is None:
+        raise ValueError(
+            "Unable to choose a valid version for the output file")
+
     return version
 
 

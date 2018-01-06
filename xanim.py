@@ -394,7 +394,7 @@ class Anim(XBinIO, object):
         file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))
 
         # If there is no current version, fallback to the argument
-        validate_version(self, version)
+        version = validate_version(self, version)
 
         file.write("ANIMATION\n")
         file.write("VERSION %d\n\n" % self.version)
@@ -483,7 +483,7 @@ class Anim(XBinIO, object):
 
     def WriteFile_Bin(self, path, version=3, header_message=""):
         # If there is no current version, fallback to the argument
-        validate_version(self, version)
+        version = validate_version(self, version)
         return self.__xbin_writefile_anim_internal__(path,
                                                      self.version,
                                                      header_message)
