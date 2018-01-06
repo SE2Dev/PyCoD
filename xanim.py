@@ -30,6 +30,7 @@ class NoteTrack(object):
     def __init__(self):
         self.notes = []
         self.frame_count = None
+        self.first_frame = None
 
     def LoadFile_Raw(self, filepath):
         self.notes = []
