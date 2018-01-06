@@ -113,7 +113,7 @@ def __clean_float2str__(value):
 class PartInfo(object):
     '''In the context of an XANIM_EXPORT file, a 'part' is essentially a
     bone'''
-    __slots__ = ('name')
+    __slots__ = ('name',)
 
     def __init__(self, name):
         self.name = name
@@ -215,7 +215,7 @@ class Anim(XBinIO, object):
     __slots__ = ('version', 'framerate', 'parts', 'frames', 'notes')
 
     def __init__(self):
-        self.version = None
+        super().__init__()
         self.framerate = None
         self.parts = []
         self.frames = []

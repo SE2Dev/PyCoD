@@ -381,8 +381,8 @@ class Model(XBinIO, object):
     supported_versions = [5, 6, 7]
 
     def __init__(self, name='$model'):
+        super().__init__()
         self.name = name
-        self.version = -1
 
         self.bones = []
         self.meshes = []

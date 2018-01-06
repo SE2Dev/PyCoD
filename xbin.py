@@ -448,9 +448,10 @@ class XBlock(object):
 
 
 class XBinIO(object):
-    __slots__ = ('version')
+    __slots__ = ('version', )
 
     def __init__(self):
+        self.version = None
         return
 
     @staticmethod
