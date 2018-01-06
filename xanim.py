@@ -98,12 +98,12 @@ class NoteTrack(object):
 '''
 
 
-def __clamp_float__(value, range=(-1.0, 1.0)):
-    return max(min(value, range[1]), range[0])
+def __clamp_float__(value, clamp_range=(-1.0, 1.0)):
+    return max(min(value, clamp_range[1]), clamp_range[0])
 
 
-def __clamp_multi__(value, range=(-1.0, 1.0)):
-    return tuple([max(min(v, range[1]), range[0]) for v in value])
+def __clamp_multi__(value, clamp_range=(-1.0, 1.0)):
+    return tuple([max(min(v, clamp_range[1]), clamp_range[0]) for v in value])
 
 
 def __clean_float2str__(value):
