@@ -1,6 +1,6 @@
 try:
     # Try to import the python-lz4 package
-    import lz4
+    import lz4.block
 
 except:
     # If python-lz4 isn't present, fallback to using pure python
