@@ -39,7 +39,7 @@ def deserialize_image_string(ref_string):
         return {"color": "$none.tga"}
 
     out = {}
-    for key, value in re.findall('\s*(\S+?)\s*:\s*(\S+)\s*', ref_string):
+    for key, value in re.findall(r'\s*(\S+?)\s*:\s*(\S+)\s*', ref_string):
         out[key.lower()] = value.lstrip()
 
     if not out:
