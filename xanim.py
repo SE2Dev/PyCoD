@@ -151,7 +151,7 @@ class Frame(object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
@@ -228,7 +228,7 @@ class Anim(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if line_split[0] == "ANIMATION":
@@ -247,7 +247,7 @@ class Anim(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if line_split[0] == "NUMPARTS":
@@ -271,7 +271,7 @@ class Anim(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if line_split[0] == "FRAMERATE":
@@ -314,7 +314,7 @@ class Anim(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             # Skipping the extra data seems to be the fastest way to load these

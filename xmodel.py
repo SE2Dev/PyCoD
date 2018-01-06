@@ -35,14 +35,14 @@ def __normalized__(iterable):
 
 
 def deserialize_image_string(ref_string):
-    if len(ref_string) == 0:
+    if not ref_string:
         return {"color": "$none.tga"}
 
     out = {}
     for key, value in re.findall('\s*(\S+?)\s*:\s*(\S+)\s*', ref_string):
         out[key.lower()] = value.lstrip()
 
-    if len(out) == 0:
+    if not out:
         out = {"color": ref_string}
     return out
 
@@ -103,7 +103,7 @@ class Vertex(object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
@@ -186,7 +186,7 @@ class Face(object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
@@ -325,7 +325,7 @@ class Mesh(object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if line_split[0] == 'NUMVERTS':
@@ -356,7 +356,7 @@ class Mesh(object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
@@ -395,7 +395,7 @@ class Model(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if state == 0 and line_split[0] == "MODEL":
@@ -423,7 +423,7 @@ class Model(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
@@ -475,7 +475,7 @@ class Model(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             # TODO: Reordering these token checks may improve performance
@@ -507,7 +507,7 @@ class Model(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             if line_split[0] == "NUMOBJECTS":
@@ -570,7 +570,7 @@ class Model(XBinIO, object):
             lines_read += 1
 
             line_split = line.split()
-            if len(line_split) == 0:
+            if not line_split:
                 continue
 
             for i, split in enumerate(line_split):
