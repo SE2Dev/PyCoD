@@ -160,7 +160,7 @@ class Frame(object):
 
             if state == 0 and line_split[0] == "PART":
                 part_index = int(line_split[1])
-                if(part_index >= part_count):
+                if part_index >= part_count:
                     fmt = ("part_count does not index part_index -- "
                            "%d not in [0, %d)")
                     raise ValueError(fmt % (part_index, part_count))
@@ -387,7 +387,7 @@ class Anim(XBinIO, object):
         if last_frame - first_frame != len(self.frames):
             fmt = ("The keyed frame count and number of frames do not match"
                    " (%d != %d)")
-            err = (	fmt % (last_frame - first_frame, len(self.frames)))
+            err = (fmt % (last_frame - first_frame, len(self.frames)))
             raise ValueError(err)
 
         file = open(path, "w")

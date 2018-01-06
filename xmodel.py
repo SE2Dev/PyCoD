@@ -9,12 +9,12 @@ import re
 from .xbin import XBinIO, validate_version
 
 
-def __clamp_float__(value, range=(-1.0, 1.0)):
-    return max(min(value, range[1]), range[0])
+def __clamp_float__(value, clamp_range=(-1.0, 1.0)):
+    return max(min(value, clamp_range[1]), clamp_range[0])
 
 
-def __clamp_multi__(value, range=(-1.0, 1.0)):
-    return tuple([max(min(v, range[1]), range[0]) for v in value])
+def __clamp_multi__(value, clamp_range=(-1.0, 1.0)):
+    return tuple([max(min(v, clamp_range[1]), clamp_range[0]) for v in value])
 
 # Black Ops Note
 #  NORMAL 0.0 0.0 0.000000000000000000001 <works fine>
@@ -112,7 +112,7 @@ class Vertex(object):
 
             if state == 0 and line_split[0] == vert_tok:
                 vert_index = int(line_split[1])
-                if(vert_index >= vert_count):
+                if vert_index >= vert_count:
                     fmt = ("vert_count does not index vert_index -- "
                            "%d not in [0, %d)")
                     raise ValueError(fmt % (vert_index, vert_count))
@@ -432,7 +432,7 @@ class Model(XBinIO, object):
 
             if state == 0 and line_split[0] == "BONE":
                 bone_index = int(line_split[1])
-                if(bone_index >= bone_count):
+                if bone_index >= bone_count:
                     fmt = ("bone_count does not index bone_index -- "
                            "%d not in [0, %d)")
                     raise ValueError(fmt % (bone_index, bone_count))
@@ -494,7 +494,7 @@ class Model(XBinIO, object):
                 if bones_read == bone_count:
                     break
 
-        for bone in range(bone_count):
+        for _ in range(bone_count):
             lines_read += self.__load_bone__(file, bone_count)
 
         return lines_read
@@ -702,10 +702,10 @@ class Model(XBinIO, object):
 
         if strict:
             # TODO: Add cosmetic hierarchy validation
-            assert(len(self.materials < 256))
-            assert(len(self.meshes < 256))
+            assert len(self.materials) < 256
+            assert len(self.meshes) < 256
             if version < 7:
-                assert(vert_count <= 0xFFFF)
+                assert vert_count <= 0xFFFF
 
         file = open(path, "w")
         file.write("// Export time: %s\n\n" % strftime("%a %b %d %H:%M:%S %Y"))

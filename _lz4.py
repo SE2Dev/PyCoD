@@ -2,7 +2,7 @@ try:
     # Try to import the python-lz4 package
     import lz4.block
 
-except:
+except ImportError:
     # If python-lz4 isn't present, fallback to using pure python
     import sys
     from io import BytesIO
@@ -10,11 +10,11 @@ except:
     try:
         from six import byte2int
         from six.moves import xrange
-    except:
+    except ImportError:
         xrange = range
 
-        def byte2int(bytes):
-            return int(bytes[0])
+        def byte2int(_bytes):
+            return int(_bytes[0])
 
     class CorruptError(Exception):
         pass
