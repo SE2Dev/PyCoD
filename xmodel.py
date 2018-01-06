@@ -211,7 +211,7 @@ class Face(object):
                     if vert_number == 2:
                         return lines_read
                     else:
-                        state == 1
+                        continue
 
                 # for Version 6, continue loading the vertex properties for the
                 # last vertex
