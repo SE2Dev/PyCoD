@@ -4,7 +4,6 @@ try:
 
 except ImportError:
     # If python-lz4 isn't present, fallback to using pure python
-    import sys
     from io import BytesIO
 
     try:
