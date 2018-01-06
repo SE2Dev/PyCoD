@@ -62,8 +62,8 @@ def padding(size):
     return 4 - size & 0x3
 
 
-def __clamp_float_to_short__(value, range=(-32768, 32767)):
-    return max(min(int(value * range[1]), range[1]), range[0])
+def __clamp_float_to_short__(value, _range=(-32768, 32767)):
+    return max(min(int(value * _range[1]), _range[1]), _range[0])
 
 
 def __str2bytes__(string):
