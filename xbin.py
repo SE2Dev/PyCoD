@@ -534,6 +534,10 @@ class XBinIO(object):
                 raise TypeError("Found %s asset. Expected %s" %
                                 (state.asset_type, expected_type))
 
+        def LoadVersion(file):
+            self.version = XBlock.LoadInt16Block(file)
+            print(self.version)
+
         def LoadBoneCount(file):
             self.bones = [None] * XBlock.LoadInt16Block(file)
 
@@ -717,7 +721,7 @@ class XBinIO(object):
             0xC355: ("Comment block", XBlock.LoadCommentBlock),
             0x46C8: ("Model identification block", InitModel),
             0x7AAC: ("Animation block", InitAnim),
-            0x24D1: ("Version block", XBlock.LoadInt16Block),
+            0x24D1: ("Version block", LoadVersion),
 
             # Model Specific
             0x76BA: ("Bone count block", LoadBoneCount),
