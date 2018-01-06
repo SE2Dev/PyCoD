@@ -81,12 +81,12 @@ class XBlock(object):
 
     @staticmethod
     def LoadString(file):
-        bytes = b''
+        _bytes = b''
         b = file.read(1)
         while not b == b'\x00':
-            bytes += b
+            _bytes += b
             b = file.read(1)
-        return bytes.decode("utf-8")
+        return _bytes.decode("utf-8")
 
     @staticmethod
     def LoadString_Aligned(file):
@@ -450,7 +450,8 @@ class XBlock(object):
 class XBinIO(object):
     __slots__ = ('version')
 
-    def __init__(self): return
+    def __init__(self):
+        return
 
     @staticmethod
     def __decompress_internal__(file, dump=False):
@@ -801,7 +802,6 @@ class XBinIO(object):
                     raise NotImplementedError(
                         "Unimplemented Block '%s' at 0x%X" %
                         (data[0], offset))
-                    break
                 else:
                     if LOG_BLOCKS:
                         print("Loading Block: '%s' at 0x%X" %
@@ -816,7 +816,6 @@ class XBinIO(object):
                 offset = file.tell() - 2
                 raise ValueError("Unknown Block Hash 0x%X at 0x%X" %
                                  (block_hash, offset))
-                break
 
         # Return the dummy mesh for splitting if we imported a model
         if state.asset_type == 'MODEL':

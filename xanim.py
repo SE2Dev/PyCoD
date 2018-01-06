@@ -206,7 +206,7 @@ class Frame(object):
         self.parts = [FramePart()] * part_count
 
         lines_read = 0
-        for part in range(part_count):
+        for _ in range(part_count):
             lines_read += self.__load_part__(file, part_count)
         return lines_read
 
@@ -380,7 +380,7 @@ class Anim(XBinIO, object):
                       header_message="", embed_notes=True):
         first_frame = 0
         last_frame = 0
-        if len(self.frames) != 0:
+        if self.frames:
             first_frame = min([frame.frame for frame in self.frames])
             last_frame = max([frame.frame for frame in self.frames]) + 1
 
@@ -434,7 +434,7 @@ class Anim(XBinIO, object):
             for part_index, part in enumerate(self.parts):
                 file.write("PART %d\n" % part_index)
                 track_count = 0 if part_index != 0 else (
-                    1 if len(self.notes) != 0 else 0)
+                    1 if self.notes else 0)
                 file.write("NUMTRACKS %d\n\n" % track_count)
                 if track_count != 0:
                     file.write("NOTETRACK 0\n")

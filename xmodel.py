@@ -61,7 +61,7 @@ def serialize_image_string(image_dict, extended_features=True):
         # in which case - the image dict extension shouldn't be used
         if 'color' in image_dict:  # use the color map
             return image_dict['color']
-        elif len(image_dict) != 0:  # if it cant be found, grab the first image
+        elif image_dict != 0:  # if it cant be found, grab the first image
             key, value = image_dict.items()[0]
             return value
         return ""
