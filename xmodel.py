@@ -720,7 +720,6 @@ class Model(XBinIO, object):
         file.write("NUMBONES %d\n" % len(self.bones))
 
         # NOTE: Cosmetic bones are only used by version 7 and later
-        bone_enum = None
         if version == 7:
             cosmetics = len([bone for bone in self.bones if bone.cosmetic])
             if cosmetics > 0:
@@ -732,12 +731,28 @@ class Model(XBinIO, object):
                 bone_enum = sorted(enumerate(self.bones),
                                    key=lambda kvp: kvp[1].cosmetic)
 
-        # If no sorted enum is specified, we just the default bone enum
-        if bone_enum is None:
-            bone_enum = enumerate(self.bones)
+                # Allocate space for the bone map before any
+                #  modifications to self.bones
+                bone_map = [None] * len(self.bones)
+
+                # Update the bone list & build old->new index map
+                index_map, self.bones = zip(*bone_enum)
+                for new, old in enumerate(index_map):
+                    bone_map[old] = new
+
+                # Rebuild the parent indices for all non-root bones
+                for bone in self.bones:
+                    if bone.parent != -1:
+                        bone.parent = bone_map[bone.parent]
+
+                # Rebuild the weight tables for all vertices
+                for mesh in self.meshes:
+                    for vert in mesh.verts:
+                        vert.weights = [(bone_map[old_index], weight)
+                                        for old_index, weight in vert.weights]
 
         # Write the actual bone info
-        for bone_index, bone in bone_enum:
+        for bone_index, bone in enumerate(self.bones):
             file.write("BONE %d %d \"%s\"\n" %
                        (bone_index, bone.parent, bone.name))
 
