@@ -399,7 +399,7 @@ class XBlock(object):
         strings = (__str2bytes__(material.name),
                    __str2bytes__(material.type),
                    __str2bytes__(serialize_image_string(
-                       material.images, extended_features=True))
+                       material.images, extended_features))
                    )
         sizes = tuple([padded(len(s) + 1) for s in strings])
         data = struct.pack('Hh%ds%ds%ds' %
