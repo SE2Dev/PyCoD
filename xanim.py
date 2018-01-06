@@ -212,10 +212,10 @@ class Frame(object):
 
 
 class Anim(XBinIO, object):
-    __slots__ = ('version', 'framerate', 'parts', 'frames', 'notes')
+    __slots__ = ('framerate', 'parts', 'frames', 'notes')
 
     def __init__(self):
-        super().__init__()
+        super(XBinIO, self).__init__()
         self.framerate = None
         self.parts = []
         self.frames = []

@@ -377,11 +377,11 @@ class Mesh(object):
 
 
 class Model(XBinIO, object):
-    __slots__ = ('version', 'name', 'bones', 'meshes', 'materials')
+    __slots__ = ('name', 'bones', 'meshes', 'materials')
     supported_versions = [5, 6, 7]
 
     def __init__(self, name='$model'):
-        super().__init__()
+        super(XBinIO, self).__init__()
         self.name = name
 
         self.bones = []
