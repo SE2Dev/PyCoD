@@ -193,7 +193,8 @@ class Face(object):
                 if split[-1:] == ',':
                     line_split[i] = split.rstrip(",")
 
-            if state == 0 and line_split[0] == "TRI":
+            # Support both TRI & TRI16
+            if state == 0 and line_split[0].startswith("TRI"):
                 tri_number += 1
                 self.mesh_id = int(line_split[1])
                 self.material_id = int(line_split[2])
@@ -240,8 +241,13 @@ class Face(object):
         return lines_read
 
     def save(self, file, version, index_offset, vert_tok_suffix=""):
-        file.write("TRI %d %d %d %d\n" %
-                   (self.mesh_id, self.material_id, 0, 0))
+        # Only use TRI16 if we're using version 7 or newer, etc.
+        if version >= 7 and (self.mesh_id > 255 or self.material_id > 255):
+            token = "TRI16"
+        else:
+            token = "TRI"
+        file.write("%s %d %d %d %d\n" %
+                   (token, self.mesh_id, self.material_id, 0, 0))
         for i in range(3):
             self.indices[i].save(file, version, index_offset,
                                  vert_tok_suffix=vert_tok_suffix)
