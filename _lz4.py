@@ -13,7 +13,7 @@ except ImportError:
         xrange = range
 
         def byte2int(_bytes):
-            return int(_bytes[0])
+            return ord(_bytes[0])
 
     class CorruptError(Exception):
         pass
