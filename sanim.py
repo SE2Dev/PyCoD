@@ -10,6 +10,14 @@ import struct
     ---------------------------
 '''
 
+# buffer() is required for file.writestr in Python 2.x but
+#  is no longer required (and doesn't exist) in Python 3.x
+try:
+    buffer
+except NameError:
+    def buffer(data):
+        return data
+
 
 class Frame(object):
     __slots__ = ('index', 'position', 'rotation')
