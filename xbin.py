@@ -233,6 +233,14 @@ class XBlock(object):
         file.seek(start + padded(file.tell() - start))
         return result
 
+    @staticmethod
+    def SkipExtraData(file):
+        # TODO: Figure out what the "extra data" is
+        # Currently we just skip over the extra data block. It appears to
+        #  always be 2 bytes of padding followed by 16 bytes of data
+        # It only seems to appear in xanim_bin files...
+        file.seek(file.tell() + 18)
+
     # ############### #
     # Write Functions #
     # ############### #
@@ -806,7 +814,7 @@ class XBinIO(object):
             0xA65B: ("NUMIKPITCHLAYERS", None),
             0x1D7D: ("IKPITCHLAYER", None),
             0xA58B: ("ROTATION", None),
-            0x6EEE: ("EXTRA", None)
+            0x6EEE: ("EXTRA", XBlock.SkipExtraData)
         }
 
         # Read all blocks
