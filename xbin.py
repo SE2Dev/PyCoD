@@ -70,6 +70,23 @@ def __str2bytes__(string):
     return bytearray(str(string).encode('utf-8'))
 
 
+def __str_utf8__(string):
+    return str(string).encode('utf-8')
+
+
+# Conditionally define __str_packable__ depending on what the curent version
+#  of Python supports
+try:
+    struct.pack("s", "test")
+except struct.error:
+    # If struct.pack() requires a bytearray, we must convert to a byte array
+    #  to make the string packable
+    __str_packable__ = __str2bytes__
+else:
+    # Otherwise we just make sure the string is UTF8 encoded
+    __str_packable__ = __str_utf8__
+
+
 class XBlock(object):
     '''
     This is a namespace-like class that contains all of the block read/write
@@ -259,7 +276,7 @@ class XBlock(object):
 
     @staticmethod
     def WriteMetaObjectInfo(file, _hash, index, name):
-        name = __str2bytes__(name)
+        name = __str_packable__(name)
         data = struct.pack('Hh%ds' % (padded(len(name) + 1)),
                            _hash, index, name)
         file.write(data)
@@ -348,7 +365,7 @@ class XBlock(object):
 
     @staticmethod
     def WriteBoneInfoBlock(file, bone_index, bone):
-        name = __str2bytes__(bone.name)
+        name = __str_packable__(bone.name)
         name_size = len(name)
         data = struct.pack('Hxxii%ds' % padded(name_size + 1), 0xF099,
                            bone_index, bone.parent, name)
@@ -415,9 +432,9 @@ class XBlock(object):
                                material,
                                extended_features=True):
         from .xmodel import serialize_image_string
-        strings = (__str2bytes__(material.name),
-                   __str2bytes__(material.type),
-                   __str2bytes__(serialize_image_string(
+        strings = (__str_packable__(material.name),
+                   __str_packable__(material.type),
+                   __str_packable__(serialize_image_string(
                        material.images, extended_features))
                    )
         sizes = tuple([padded(len(s) + 1) for s in strings])
@@ -458,7 +475,7 @@ class XBlock(object):
 
     @staticmethod
     def WriteNoteFrame(file, note):
-        string = __str2bytes__(note.string)
+        string = __str_packable__(note.string)
         data = struct.pack('Hxxi%ds' % (len(string) + 1),
                            0x1675, int(note.frame), string)
         end = file.tell() + len(data)
