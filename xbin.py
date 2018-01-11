@@ -216,10 +216,13 @@ class XBlock(object):
 
     @staticmethod
     def LoadUVBlock(file):
-        data = file.read(10)
-        result = struct.unpack('=hff', data)
-        # Ignore UV layer for now
-        return (result[1], result[2])
+        data = file.read(2)
+        layer_count = struct.unpack('h', data)[0]
+        data = file.read(8 * layer_count)
+        result = struct.unpack("%df" % layer_count * 2, data)
+        # Technically there is support for additional UV layers
+        #  but we're only using the first one at the moment
+        return result[:2]
 
     @staticmethod
     def LoadObjectBlock(file):
