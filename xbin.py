@@ -584,6 +584,9 @@ class XBinIO(object):
         def LoadCosmeticCount(file):
             cosmetic_count = XBlock.LoadInt32Block(file)
 
+        def LoadSBoneCount(file):
+            raise NotImplementedError("Siege models are not supported yet")
+
         def LoadBoneInfo(file):
             index, parent, name = XBlock.LoadBoneBlock(file)
             cosmetic = (index >= (len(self.bones) - cosmetic_count))
@@ -828,7 +831,7 @@ class XBinIO(object):
 
             # Misc (Unimplemented)
             0xBCD4: ("FIRSTFRAME", None),
-            0x1FC2: ("NUMSBONES", None),
+            0x1FC2: ("NUMSBONES", LoadSBoneCount),
             0xB35E: ("NUMSWEIGHTS", None),
             0xEF69: ("QUATERNION", None),
             0xA65B: ("NUMIKPITCHLAYERS", None),
