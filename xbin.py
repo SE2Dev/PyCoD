@@ -323,8 +323,9 @@ class XBlock(object):
 
     @staticmethod
     def WriteCommentBlock(file, comment):
-        comment = bytearray(comment.encode('utf-8'))
-        data = struct.pack('Hxx%ds' % (len(comment) + 1), 0xC355, comment)
+        comment = __str_packable__(comment)
+        padded_size = padded(len(comment) + 1)
+        data = struct.pack('Hxx%ds' % padded_size, 0xC355, comment)
         file.write(data)
 
     @staticmethod
