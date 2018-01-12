@@ -122,7 +122,10 @@ except ImportError:
 else:
     # Use python-lz4 if present
     __support_mode__ = 'python-lz4'
-    compress = lz4.block.compress
+
+    def compress(data):
+        return lz4.block.compress(data, store_size=False)
+
     uncompress = lz4.block.decompress
 
 support_info = 'LZ4: Using %s' % __support_mode__
