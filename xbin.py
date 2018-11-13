@@ -480,11 +480,9 @@ class XBlock(object):
     @staticmethod
     def WriteNoteFrame(file, note):
         string = __str_packable__(note.string)
-        data = struct.pack('Hxxi%ds' % (len(string) + 1),
+        data = struct.pack('Hxxi%ds' % padded(len(string) + 1),
                            0x1675, int(note.frame), string)
-        end = file.tell() + len(data)
         file.write(data)
-        file.write(bytearray(0) * padding(end))
 
 
 class XBinIO(object):
