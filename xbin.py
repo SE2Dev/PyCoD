@@ -581,7 +581,7 @@ class XBinIO(object):
             self.bones = [None] * XBlock.LoadInt16Block(file)
 
         def LoadCosmeticCount(file):
-            cosmetic_count = XBlock.LoadInt32Block(file)
+            cosmetic_count = XBlock.LoadInt32Block(file)  # NOQA
 
         def LoadSBoneCount(file):
             raise NotImplementedError("Siege models are not supported yet")
@@ -775,20 +775,20 @@ class XBinIO(object):
             # Model Specific
             0x76BA: ("Bone count block", LoadBoneCount),
             0x7836: ("Cosmetic bone count block", LoadCosmeticCount),
-            0xF099: ("Bone block", LoadBoneInfo),  # friggin porter
+            0xF099: ("Bone block", LoadBoneInfo),
             0xDD9A: ("Bone index block", LoadBoneIndex),
             0x9383: ("Vert / Bone offset block", LoadOffset),
             0x1C56: ("Bone scale block", LoadBoneScale),
             0xDCFD: ("Bone x matrix", LoadBoneMatrix),
             0xCCDC: ("Bone y matrix", LoadBoneMatrix),
-            0xFCBF: ("Bone z matrix", LoadBoneMatrix),  # 0x95D0 - friggin porter  # nopep8
+            0xFCBF: ("Bone z matrix", LoadBoneMatrix),  # 0x95D0
 
             0x950D: ("Number of verts", LoadVertexCount),
             0x2AEC: ("Number of verts32", LoadVertex32Count),
             0x8F03: ("Vert info block marker", LoadVertexIndex),
             0xB097: ("Vert32 info block marker", LoadVertex32Index),
             0xEA46: ("Vert weighted bones count", LoadVertexWeightCount),
-            0xF1AB: ("Vert bone weight info", LoadVertexWeight),  # friggin porter  # nopep8
+            0xF1AB: ("Vert bone weight info", LoadVertexWeight),
 
             0xBE92: ("Number of faces block", LoadTriCount),
             0x562F: ("Triangle info block", LoadTriInfo),

@@ -5,3 +5,7 @@ from .xanim import Anim
 from .sanim import SiegeAnim
 
 version = (0, 3, 0)  # Version specifier for PyCoD
+
+assert Model
+assert Anim
+assert SiegeAnim
