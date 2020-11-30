@@ -1,5 +1,5 @@
 /__pycache__
-/.vscode
+
 /assets
 /test
 /tmp
@@ -9,3 +9,13 @@
 
 tmp.py
 verify.py
+
+build
+
+*.egg-info
+.tox
+.pytest_cache
+
+dist
+
+!requirements.txt

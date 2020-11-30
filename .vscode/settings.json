@@ -1,0 +1,26 @@
+{
+	// Use Flake8 for linting
+	"python.linting.enabled": true,
+	"python.linting.flake8Enabled": true,
+	"python.linting.pylintEnabled": false,
+
+	// Use pytest for tests
+	"python.testing.unittestEnabled": false,
+	"python.testing.nosetestsEnabled": false,
+	"python.testing.pytestEnabled": true,
+	"python.testing.pytestArgs": [
+		"--import-mode=importlib"
+	],
+
+	// Editor Settings
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		".pytest_cache": true,
+		"*.egg-info": true,
+		"**/__pycache__": true
+	}
+}
