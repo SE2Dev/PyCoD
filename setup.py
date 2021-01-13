@@ -14,7 +14,8 @@ def get_version_raw(rel_path):
     rxVersion = "\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)"
     rxVersionLine = "^\\s*__version__\\s*=\\s*" + rxVersion + "(?:\\s*#.*)?"
     for line in read(rel_path).splitlines():
-        if match := re.search(rxVersionLine, line, re.IGNORECASE):
+        match = re.search(rxVersionLine, line, re.IGNORECASE)
+        if match:
             return (int(match.group(1)),
                     int(match.group(2)),
                     int(match.group(3)))
