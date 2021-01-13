@@ -19,3 +19,5 @@ build
 dist
 
 !requirements.txt
+
+.vscode/.ropeproject
