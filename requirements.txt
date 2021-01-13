@@ -1,3 +1,4 @@
 pytest
 rope
 tox
+lz4
