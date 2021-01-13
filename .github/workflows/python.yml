@@ -24,6 +24,15 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install Tox and any other packages
         run: pip install tox
+
+      - name: Cache tox environments
+        uses: actions/cache@v2
+        with:
+          path: .tox
+          # setup.cfg, pyproject.toml, etc. contain information that 
+          # may impact the tox environment.
+          key: ${{ runner.os }}-${{ matrix.python }}-tox-${{ hashFiles('tox.ini', 'setup.py', 'pyproject.toml', 'src/PyCoD/__init__.py') }}
+      
       - name: Run Tox
         # Run tox using the version of Python in `PATH`
         run: tox -e py
